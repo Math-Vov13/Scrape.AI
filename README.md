@@ -1,6 +1,6 @@
 # Scrape.AI
 
-Sources de données -> Ingestion & Normalisation -> Chat 
+Sources de données -> Ingestion -> Chat 
 
 ## Récupérer
 
