@@ -19,8 +19,11 @@ Mail (SMTP)
 
 ## Chat
 Récup
+
 Création du prompt
+
 Envoi à un LLM 
+
 Affichage 
 
 
