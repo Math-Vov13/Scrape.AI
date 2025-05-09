@@ -1,44 +1,70 @@
 # Scrape.AI
 
-Sources de données -> Ingestion -> Chat 
+## Architecture Générale
+Sources de données → Ingestion → Chat → Réponse
 
-## Récupérer
+## Récupérer les données
+### Sources API (temps réel)
+Google Calendar : récupération des événements, réunions, disponibilités.
 
-### Api (temps réel)
-google calendar 
+Notion : accès aux bases de données, pages, notes et tâches.
 
-Notion
+Slack : messages, fichiers, canaux et utilisateurs.
 
-Slack 
+Mail (SMTP) : analyse des emails, pièces jointes.
 
-Mail (SMTP)
+### Sources Locales (temps réel ou chargement manuel)
+.pdf : extraction de texte via OCR.
 
-### Local (temps réel)
-.pdf 
+.docx / .doc : lecture du texte.
 
-.docx
+.txt : lecture du texte.
 
-.doc
-
-.txt
-
-.xlsx
+.xlsx : lecture des feuilles, cellules et formules.
 
 ## Chat
-Récupération des données 
+1. Récupération des données
+Regroupe les sources sélectionnées (API et fichiers).
 
-Création du prompt
+Extrait les informations utiles.
 
-Envoi à un LLM 
+2. Création du prompt
+Construire un prompt à partir des données.
 
-Affichage 
+Optimisation contextuelle : résumé, source du fichier.
+
+3. Envoi à un LLM
+Envoi du prompt vers un modèle LLM pour l'exécuter en local.
+
+Support du multilingue.
+
+4. Affichage de la réponse
+Affichage dans l'interface de la réponse
+
+Garde le contexte de la conversation
+
+## Front-end
 
 
-# Partie Admin 
-Ajouter fichier
+## BDD
 
-Ajouter clé API
+## Partie Admin
+Ajouter un fichier
 
-Voir l’historique des conversations
+Historique des conversations
 
-Logs d’accès et synchronisation
+Journal complet des interactions par utilisateur.
+
+Export possible des prompts.
+
+Logs d’accès et de synchronisation
+Suivi des connexions, erreurs API.
+
+## Lancement
+Prérequis :
+
+Python
+
+Accès aux APIs 
+
+LLM ?? (choisir entre LLaMa, Mistral AI ou autre)
