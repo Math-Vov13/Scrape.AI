@@ -4,7 +4,7 @@ Sources de données -> Ingestion -> Chat
 
 ## Récupérer
 
-### Api (1 fois par jour)
+### Api (temps réel)
 google calendar 
 Notion
 Slack 
