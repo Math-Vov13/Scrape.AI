@@ -26,7 +26,7 @@ Mail (SMTP) : analyse des emails, pièces jointes.
 Récupération des données
 Regroupe les sources sélectionnées (API et fichiers).
 
-Extrait les informations utiles.
+Extrait & Conserve les informations utiles.
 
 ## CHAT
 
@@ -71,3 +71,4 @@ Python
 Accès aux APIs 
 
 LLM ?? (choisir entre LLaMa, Mistral AI ou autre)
+![Scrape](https://github.com/user-attachments/assets/5f12dd62-f5bd-4695-a2ad-03dc6a4259d5)
