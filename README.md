@@ -72,6 +72,7 @@ Export en JSON
 
 ## API
 Fonctions
+
 Le chat interroge l’API → l’API consulte la BDD → envoie les données au LLM → retourne la réponse.
 
 L’admin utilise l’API pour :
