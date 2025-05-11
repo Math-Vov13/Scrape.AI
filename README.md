@@ -47,6 +47,7 @@ Affichage de la réponse
 Affichage dans l'interface de la réponse
 
 
+
 ## Front-End
 
 ## BDD
@@ -68,6 +69,25 @@ Sauvegardes régulières.
 Requêtes flexibles pour audit, export ou visualisation.
 
 Export en JSON
+
+## API
+Fonctions
+Le chat interroge l’API → l’API consulte la BDD → envoie les données au LLM → retourne la réponse.
+
+L’admin utilise l’API pour :
+
+Ajouter/supprimer des fichiers.
+
+Consulter l’historique complet.
+
+Exporter des conversations.
+
+Accéder aux logs et synchronisations.
+
+Comportement
+L’API interroge régulièrement les services cloud tiers pour synchroniser les données récentes.
+
+L’accès à l’API est restreint au chat et à l’admin uniquement.
 
 ## Partie Admin
 Ajouter un fichier
