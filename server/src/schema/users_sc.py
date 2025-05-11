@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 class UserBase(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: str
     full_name: Optional[str] = None
     authorization: Optional[str] = None
@@ -11,10 +11,10 @@ class UserBase(BaseModel):
 
 class UserCreate(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: str
     full_name: str
 
 class UserLogin(BaseModel):
-    email: str
+    email: EmailStr
     password: str
