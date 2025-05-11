@@ -7,7 +7,7 @@ class UserBase(BaseModel):
     password: str
     full_name: Optional[str] = None
     authorization: Optional[str] = None
-    disabled: Optional[str] = None
+    disabled: Optional[bool] = False
 
 class UserCreate(BaseModel):
     username: str
