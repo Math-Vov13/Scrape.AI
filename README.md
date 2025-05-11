@@ -73,4 +73,4 @@ Accès aux APIs
 LLM ?? (choisir entre LLaMa, Mistral AI ou autre)
 
 # Diagramme
-![Scrape](https://github.com/user-attachments/assets/9e4be075-bbaa-446a-a05d-7bad0e09edbd)
+![Scrape](https://github.com/user-attachments/assets/b73140d2-ece6-46b8-a5fe-e8d65740bb54)
