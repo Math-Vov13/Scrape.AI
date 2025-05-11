@@ -71,7 +71,7 @@ Requêtes flexibles pour audit, export ou visualisation.
 Export en JSON
 
 ## API
-Fonctions
+### Fonctions
 
 Le chat interroge l’API → l’API consulte la BDD → envoie les données au LLM → retourne la réponse.
 
@@ -85,7 +85,7 @@ Exporter des conversations.
 
 Accéder aux logs et synchronisations.
 
-Comportement
+### Comportement
 L’API interroge régulièrement les services cloud tiers pour synchroniser les données récentes.
 
 L’accès à l’API est restreint au chat et à l’admin uniquement.
