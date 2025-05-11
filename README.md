@@ -71,4 +71,3 @@ Python
 Accès aux APIs 
 
 LLM ?? (choisir entre LLaMa, Mistral AI ou autre)
-![Scrape](https://github.com/user-attachments/assets/5f12dd62-f5bd-4695-a2ad-03dc6a4259d5)
