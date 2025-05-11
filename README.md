@@ -50,6 +50,24 @@ Affichage dans l'interface de la réponse
 ## Front-End
 
 ## BDD
+MongoDB
+
+Collections principales :
+users : informations utilisateurs (authentification, préférences, droits).
+
+files : métadonnées des fichiers ajoutés (nom, type, chemin, date d'ajout).
+
+messages : historique des conversations (prompts, réponses).
+
+logs : journal des interactions, synchronisations, erreurs API.
+
+Fonctionnalités :
+
+Sauvegardes régulières.
+
+Requêtes flexibles pour audit, export ou visualisation.
+
+JSON
 
 ## Partie Admin
 Ajouter un fichier
