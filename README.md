@@ -72,9 +72,9 @@ Export en JSON
 
 ## API
 ### Fonctions
-
+#### Chat
 Le chat interroge l’API → l’API consulte la BDD → envoie les données au LLM → retourne la réponse.
-
+#### Admin
 L’admin utilise l’API pour :
 
 Ajouter/supprimer des fichiers.
