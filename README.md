@@ -3,7 +3,7 @@
 ## Architecture Générale
 Sources de données → Ingestion → Chat → Réponse
 
-## Récupérer les données
+## Sources de données
 ### Sources API (temps réel)
 Google Calendar : récupération des événements, réunions, disponibilités.
 
@@ -22,29 +22,32 @@ Mail (SMTP) : analyse des emails, pièces jointes.
 
 .xlsx : lecture des feuilles, cellules et formules.
 
-## Chat
-1. Récupération des données
+## Ingestion
+Récupération des données
 Regroupe les sources sélectionnées (API et fichiers).
 
 Extrait les informations utiles.
 
-2. Création du prompt
+## CHAT
+
+1. Création du prompt
 Construire un prompt à partir des données.
 
 Optimisation contextuelle : résumé, source du fichier.
 
-3. Envoi à un LLM
+2. Envoi à un LLM
 Envoi du prompt vers un modèle LLM pour l'exécuter en local.
 
 Support du multilingue.
-
-4. Affichage de la réponse
-Affichage dans l'interface de la réponse
-
 Garde le contexte de la conversation
 
-## Front-end
+## Réponse 
 
+Affichage de la réponse
+Affichage dans l'interface de la réponse
+
+
+## Front-End
 
 ## BDD
 
