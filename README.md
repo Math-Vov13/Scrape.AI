@@ -67,7 +67,7 @@ Sauvegardes régulières.
 
 Requêtes flexibles pour audit, export ou visualisation.
 
-JSON
+Export en JSON
 
 ## Partie Admin
 Ajouter un fichier
