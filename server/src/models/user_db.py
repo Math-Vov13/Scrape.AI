@@ -8,7 +8,7 @@ def generateID()-> str:
 fake_db = {
     generateID() : UserBase(
         username= "Admin",
-        password= "$2b$12$FRRwuN1mOqEU3yW0y23m1.7asJU7NdglFatuPr2QSI4InSsQ3SO3C",
+        password= "$2b$12$FRRwuN1mOqEU3yW0y23m1.7asJU7NdglFatuPr2QSI4InSsQ3SO3C", # password: Password_Admin
         email= "admin@scrape.ai",
         full_name= "Admin",
         disabled= False
