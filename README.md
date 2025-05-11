@@ -52,7 +52,7 @@ Affichage dans l'interface de la réponse
 ## BDD
 MongoDB
 
-Collections principales :
+### Collections principales :
 users : informations utilisateurs (authentification, préférences, droits).
 
 files : métadonnées des fichiers ajoutés (nom, type, chemin, date d'ajout).
@@ -61,7 +61,7 @@ messages : historique des conversations (prompts, réponses).
 
 logs : journal des interactions, synchronisations, erreurs API.
 
-Fonctionnalités :
+### Fonctionnalités :
 
 Sauvegardes régulières.
 
