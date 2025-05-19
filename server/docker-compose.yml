@@ -7,34 +7,27 @@ services:
       - "8080:80"
     environment:
       - NODE_ENV=production
-    volumes:
-      - ./app:/usr/src/app
+    env_file:
+      - .env
+
     networks:
       - app-network
-    depends_on:
-      mongodb:
-        condition: service_healthy
+  
   
   mongodb:
     image: mongo:latest
     restart: always
-    command: [--auth]
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-      MONGO_INITDB_DATABASE: database_ScrapeAI
-
-    healthcheck:
-      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --quiet | grep 1
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # environment:
+      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      # MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
 
     ports:
-      - "27017:27017"
+      - "27019:27017"
     
     volumes:
       - mongo-data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
     networks:
       - app-network
