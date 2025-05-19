@@ -17,5 +17,3 @@ def ask_ai(file_path, prompt):
         temperature=0
     )
     return response.choices[0].message.content
-
-
