@@ -13,6 +13,7 @@ passlib = "^1.7.4"
 bcrypt = "^4.3.0"
 pymongo = {extras = ["srv"], version = "^4.12.1"}
 python-dotenv = "^1.1.0"
+pyjwt = "^2.10.1"
 
 
 [build-system]

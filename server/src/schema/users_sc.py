@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 class UserBase(BaseModel):
+    id: Optional[str] = None
     username: str
     email: EmailStr
     password: str
@@ -20,3 +21,7 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+class JWTTokenUser(BaseModel):
+    email: str
+    scopes: list[str]

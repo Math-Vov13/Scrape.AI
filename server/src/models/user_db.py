@@ -26,7 +26,7 @@ async def getUser(email: str, password: str) -> UserBase | None:
     user_doc = await db["accounts"].find_one({"email": email})
     
     if user_doc and verify_password(password, user_doc["password"]):
-        return UserBase(**user_doc)
+        return UserBase(**user_doc, id=str(user_doc["_id"]))
     
     return None
 
@@ -40,7 +40,7 @@ async def getUserByEmail(email: str) -> UserBase | None:
     user_doc = await db["accounts"].find_one({"email": email})
     
     if user_doc:
-        return UserBase(**user_doc)
+        return UserBase(**user_doc, id=str(user_doc["_id"]))
     
     return None
 

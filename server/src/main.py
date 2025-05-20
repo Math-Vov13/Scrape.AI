@@ -1,7 +1,10 @@
 import logging
 from fastapi import FastAPI
 from src.endpoints.users import router as users_router
-from src.models.db_connect import connector, MongoDBSingleton
+from src.endpoints.chat import router as chat_router
+from src.endpoints.admin import router as admin_router
+from src.endpoints.token import router as token_router
+from src.models.db_connect import connector
 from src.config.logs import setup_logging
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -45,3 +48,6 @@ async def health():
     return {"status": "ok"}
 
 app.include_router(users_router, prefix="/users", tags=["users"])
+app.include_router(chat_router, prefix="/chat", tags=["chat"])
+app.include_router(admin_router, prefix="/admin", tags=["admin"])
+app.include_router(token_router, prefix="/token", tags=["token"], include_in_schema=True)
