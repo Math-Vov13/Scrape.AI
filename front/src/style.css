@@ -1,3 +1,6 @@
+/* Import fonts - must be first */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
 :root {
   --bg-base: #000000;
   --bg-panel: #1e1e1e;
@@ -18,6 +21,3 @@ body {
 }
 
 /* Common element styles are now defined in App.vue */
-
-/* Import fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
