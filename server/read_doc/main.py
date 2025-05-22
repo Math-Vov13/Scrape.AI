@@ -1,4 +1,4 @@
-from read_doc import read_file
+from server.read_doc.read_file import read_file
 from Levenshtein import Levenshtein
 import glob
 import time 
@@ -18,7 +18,7 @@ for file in files:
     print("\n Meilleures correspondances\n")
 
     for i in line: 
-        print(f"--    {i}")
+        print(f"-- {i}")
     print("\n--------------------------------------------")
 
 
