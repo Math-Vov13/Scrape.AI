@@ -55,8 +55,12 @@ async function handleSend() {
 
   // Préparer bulle vide pour streaming réponse
   messages.value.push({ sender: 'bot', text: '' });
-
   try {
+    const apiKey = import.meta.env.VITE_MISTRAL_API_KEY;
+    if (!apiKey) {
+      throw new Error('Missing API key. Please set VITE_MISTRAL_API_KEY in your .env file.');
+    }
+
     const url = import.meta.env.VITE_USE_PROXY === 'true'
       ? '/mistral/v1/chat/completions'
       : 'https://api.mistral.ai/v1/chat/completions';
@@ -65,7 +69,7 @@ async function handleSend() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_MISTRAL_API_KEY}`
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: 'mistral-small',
