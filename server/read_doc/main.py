@@ -1,4 +1,4 @@
-from server.read_doc.read_file import read_file
+from read_file import read_file
 from Levenshtein import Levenshtein
 import glob
 import time 
