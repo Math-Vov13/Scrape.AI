@@ -40,6 +40,7 @@ import { ref } from 'vue';
 import Chat from './components/Chat.vue';
 
 const mode = ref('login');
+const showAuth = ref(false);
 const loginEmail = ref('');
 const loginPassword = ref('');
 const regName = ref('');
@@ -48,10 +49,12 @@ const regPassword = ref('');
 
 function handleLogin() {
   console.log('Login with', loginEmail.value, loginPassword.value);
+  showAuth.value = false; // Fermer le modal après connexion
 }
 
 function handleRegister() {
   console.log('Register with', regName.value, regEmail.value, regPassword.value);
+  showAuth.value = false; // Fermer le modal après inscription
 }
 </script>
 
@@ -75,6 +78,7 @@ html, body, #app {
   height: 100%;
   background-color: var(--bg-base);
   color: var(--text-primary);
+  overflow: hidden; /* Empêcher le scrolling du body */
 }
 
 .app-container, #app {
@@ -84,12 +88,17 @@ html, body, #app {
 }
 
 .app-header {
-  position: relative;
-  padding: 16px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 20px;
   background-color: var(--bg-panel);
   border-bottom: 1px solid #2a2a2a;
   display: flex;
   align-items: center;
+  height: 60px;
+  z-index: 10;
 }
 
 .app-title {
@@ -149,7 +158,14 @@ html, body, #app {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 16px;
+  align-items: stretch;
+  padding: 0;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 </style>
