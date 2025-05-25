@@ -2,7 +2,7 @@ import json
 import httpx
 from httpx import Timeout
 from src.config.Config import config
-from src.schema.mistral_sc import MistralRequestAPI, MistralModel, MistralMessage, MistralToolResponse
+from src.schema.mistral_sc import *
 from src.schema.mcp_sc import MCPRequest
 from os import environ as env
 from async_lru import alru_cache
@@ -42,100 +42,119 @@ def createSystemPrompt(username: str, model: str = "mistral") -> str:
     """
 
 
-async def sendChat(history: list[MistralMessage], model: MistralModel, temperature: float=0.7, max_tokens: int=1000):
-
-    buffer = ""
-    tool_calls = {}
-
-    prompt = MistralRequestAPI(
-        model= model,
-        messages= history,
-        temperature= temperature,
-        max_tokens= max_tokens,
-        top_p= 1.0,
-        stream= True,
-
-        tools= await getTools(),
-        tool_choice= "auto",
-    ).model_dump(mode= "json")
-
-    print(f"Sending prompt to Mistral API: {prompt}")
+async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessage], model: MistralModel, temperature: float=0.7, max_tokens: int=1000):
+    history: list[MistralUserMessage | MistralAssistantMessage | MistralToolMessage] = conv_history.copy()
 
     async with httpx.AsyncClient() as client:
-        async with client.stream(method= "POST", url= config.mistral_api_url,
-                        headers= MISTRAL_HEADERS, json= prompt) as response:
-            if response.status_code == 200:
-                async for chunk in response.aiter_bytes():
-                    if not chunk:
-                        continue
+        while True:
+            buffer = ""
+            tool_calls: list[MistralToolCallRequest] = []
+            usingTool = False
 
-                    # Ajout au buffer (important car un JSON peut être split sur plusieurs chunks)
-                    buffer += chunk.decode("utf-8")
+            prompt = MistralRequestAPI(
+                model=model,
+                messages=history,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=1.0,
+                stream=True,
+                tools=await getTools(),
+                tool_choice="auto",
+            ).model_dump(mode="json")
 
-                    # Traitement ligne par ligne
-                    while "\n" in buffer:
-                        line, buffer = buffer.split("\n", 1)
-                        line = line.strip()
+            print(f"Sending prompt to Mistral API: {prompt}")
 
-                        if not line or not line.startswith("data:"):
+            async with client.stream(method="POST", url=config.mistral_api_url,
+                                     headers=MISTRAL_HEADERS, json=prompt) as response:
+                if response.status_code == 200:
+                    async for chunk in response.aiter_bytes():
+                        if not chunk:
                             continue
-                        data_str = line[5:].strip()
 
-                        if data_str == "[DONE]":
-                            return
+                        buffer += chunk.decode("utf-8")
 
-                        try:
-                            data = json.loads(data_str)
-                            choices = data.get("choices", [])
-                            for choice in choices:
-                                delta = choice.get("delta", {})
-                                print("chunk:", delta, flush=True)
+                        while "\n" in buffer:
+                            line, buffer = buffer.split("\n", 1)
+                            line = line.strip()
 
-                                # Cas 1 : contenu assistant (texte)
-                                if "content" in delta:
-                                    yield delta["content"]
+                            if not line.startswith("data:"):
+                                continue
 
-                                # Cas 2 : Tool call détecté
-                                if "tool_calls" in delta:
-                                    for tool in delta["tool_calls"]:
-                                        tool_id = tool.get("id")
-                                        name = tool["function"]["name"]
-                                        args = tool["function"]["arguments"]
+                            data_str = line[5:].strip()
+                            if data_str == "[DONE]":
+                                break
 
-                                        tool_calls[tool_id] = {
-                                            "name": name,
-                                            "arguments": args
-                                        }
+                            try:
+                                data = json.loads(data_str)
+                                choices = data.get("choices", [])
 
-                            # Si l'appel est terminé et que le modèle a indiqué un appel de tool
-                            if choice.get("finish_reason") == "tool_calls":
-                                # Traitement des tools
-                                for tool_id, call in tool_calls.items():
-                                    print(f"\n🔧 Tool Call Detected: {call['name']} with args {call['arguments']}")
+                                for choice in choices:
+                                    print("Chunk:", data, flush=True)
+                                    delta = choice.get("delta", {})
 
-                                    print("id", tool_id)
-                                    print("name", call["name"])
-                                    print("arguments", call["arguments"])
+                                    if "content" in delta:
+                                        yield delta["content"]
 
-                                    response = await callTool(
-                                        call_function_id= tool_id,
-                                        tool_name= call["name"],
-                                        arguments= call["arguments"]
+                                    if "tool_calls" in delta:
+                                        for tool in delta["tool_calls"]:
+                                            tool_id = tool.get("id")
+                                            index = tool.get("index", 0)
+                                            name = tool["function"]["name"]
+                                            args = tool["function"]["arguments"]
+
+                                            tool_calls.append(
+                                                MistralToolCallRequest(
+                                                    id=tool_id,
+                                                    index=index,
+                                                    function=MistralToolFunctionRequest(
+                                                        name=name,
+                                                        arguments=args
+                                                    )
+                                                )
+                                            )
+
+                                if choice.get("finish_reason") == "tool_calls":
+                                    print("Tool calls detected in response, processing...")
+                                    usingTool = True
+
+                                    history.append(
+                                        MistralAssistantMessage(
+                                            role="assistant",
+                                            tool_calls=tool_calls
+                                        ).model_dump(mode="json")
                                     )
 
-                                    yield f"[TOOL_CALL] {call['name']} - {call['arguments']}"
-                        except json.JSONDecodeError:
-                            # Chunk incomplet, attendre le prochain
-                            continue
-            else:
-                print(f"Error: {response.status_code} - {await response.aread()}")
-                response.raise_for_status()
+                                    for tool_request in tool_calls:
+                                        response = await callTool(
+                                            call_function_id=tool_request.id,
+                                            tool_name=tool_request.function.name,
+                                            arguments=tool_request.function.arguments
+                                        )
+
+                                        history.append(MistralToolMessage(
+                                            role="tool",
+                                            name=tool_request.function.name,
+                                            content=response,
+                                            tool_call_id=tool_request.id
+                                        ))
+
+                                        yield f"[TOOL_CALL] {tool_request.function.name} - {tool_request.function.arguments}\n"
+
+                            except json.JSONDecodeError:
+                                continue
+                else:
+                    print(f"Error: {response.status_code} - {await response.aread()}")
+                    response.raise_for_status()
+
+            if not usingTool:
+                break
+
 
 
 ### --- TOOLS --- ###
 
 @alru_cache(maxsize=128)
-async def callTool(call_function_id: str, tool_name: str, arguments: str) -> MistralToolResponse:
+async def callTool(call_function_id: str, tool_name: str, arguments: str) -> str:
     """
     Fetch data from the MCP Server using a tool call.
     """
@@ -172,12 +191,7 @@ async def callTool(call_function_id: str, tool_name: str, arguments: str) -> Mis
         response = "An unexpected error occurred while calling the tool [Internal Server Error]"
 
     print(f"Tool Call Response: {response}")
-    return MistralToolResponse(
-        role="tool",
-        name=tool_name,
-        content=response,
-        tool_call_id=call_function_id
-    ).model_dump(mode="json")
+    return response
 
 
 @alru_cache(maxsize=128)

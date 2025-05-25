@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from src.endpoints.token import get_current_user
 from src.schema.users_sc import UserBase
 from src.utils.chat_mistral import sendChat, createSystemPrompt
-from src.schema.mistral_sc import MistralMessage, MistralRequest, MistralResponse, MistralStreamResponse
+from src.schema.mistral_sc import *
 
 router = APIRouter()
 
@@ -32,13 +32,22 @@ async def chat(current_user: Annotated[UserBase, Depends(get_current_user)], pro
         )
     
     if prompt.messages[0].role != "system":
-        prompt.messages.insert(0, MistralMessage(
+        prompt.messages.insert(0, MistralUserMessage(
             role="system",
             content= createSystemPrompt(current_user.username, model=prompt.model)
         ))
+    
+    async def event_generator():
+        try:
+            async for chunk in sendChat(prompt.messages, model=prompt.model, temperature=prompt.temperature, max_tokens=prompt.max_tokens):
+                yield f"data: {chunk}\n\n"
+        except Exception as e:
+            print("Erreur:", e)
+            yield f"data: [ERROR] {str(e)}\n\n"
+
 
     return StreamingResponse(
         status_code=status.HTTP_200_OK,
-        content= sendChat(prompt.messages, model=prompt.model, temperature=prompt.temperature, max_tokens=prompt.max_tokens),
+        content= event_generator(),
         media_type="text/event-stream"
     )
