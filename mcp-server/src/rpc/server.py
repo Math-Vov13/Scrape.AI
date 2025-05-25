@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request, Body
 from pathlib import Path
 from fastapi.responses import JSONResponse
-from rpc.schemas.request_sc import RPCRequest, RPCResponse
-from rpc.utils.ClassTool import Tool_Object
+from src.rpc.schemas.request_sc import RPCRequest, RPCResponse
+from src.rpc.utils.ClassTool import Tool_Object
 
 rpc = FastAPI(title="MCP-Server-ScrapeAI")
 

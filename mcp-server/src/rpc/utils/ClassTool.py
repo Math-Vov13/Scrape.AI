@@ -2,7 +2,7 @@ import logging
 import importlib.util
 from pathlib import Path
 from typing import Callable, Any
-from rpc.schemas.tool_sc import ToolModule
+from src.rpc.schemas.tool_sc import ToolModule
 
 
 class Tool_Object:

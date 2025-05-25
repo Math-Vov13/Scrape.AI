@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from middewares.ressources import middleware as middleware_ressources
-from ressources.ressources import router as RouterRessources
-from rpc.server import rpc as RpcAPI
+from src.middewares.ressources import middleware as middleware_ressources
+from src.ressources.ressources import router as RouterRessources
+from src.rpc.server import rpc as RpcAPI
 
 app = FastAPI(title= "MCP-Server-ScrapeAI")
 request_id = 0
