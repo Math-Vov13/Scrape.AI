@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from enum import StrEnum
-from typing import Optional, List
+from typing import Optional, List, Any
 
 class MistralModel(StrEnum):
     """
@@ -60,6 +60,12 @@ class MistralStreamResponse(BaseModel):
     delta: MistralMessage
     finish_reason: str = None
 
+class MistralToolResponse(BaseModel):
+    role: str= "tool"
+    name: str
+    content: Any
+    tool_call_id: str
+
 
 
 class MistralToolFunction(BaseModel):
@@ -84,11 +90,11 @@ class MistralRequestAPI(BaseModel):
     """
     model: MistralModel
     temperature: float= .7
-    # top_p: int= 1
+    top_p: int= 1
     max_tokens: int= 0
     stream: bool= False
     messages: List[MistralMessage]
 
-    # tools: List[MistralTool] = []
-    # tool_choice: str= "auto"
+    tools: List[MistralTool | dict[str, str]] = []
+    tool_choice: str= "auto"
     # parallel_tool_calls: bool= True

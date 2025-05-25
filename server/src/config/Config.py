@@ -15,6 +15,12 @@ class Config:
     enterprise_description: str = "This is a sample enterprise description."
     enterprise_logo: str = "https://example.com/logo.png"
     enterprise_website: str = "https://example.com"
+
+    # MCP settings
+    mcp_url: str = "https://mcp.example.com"
+    mcp_tools_url: str = "https://mcp.example.com/tools"
+    mcp_tools_base_url: str = "https://mcp.example.com/tools"
+    mcp_resources_base_url: str = "https://mcp.example.com/resources"
     
     # Database settings
     db_host: str = "localhost"

@@ -38,6 +38,7 @@ async def chat(current_user: Annotated[UserBase, Depends(get_current_user)], pro
         ))
 
     return StreamingResponse(
-        sendChat(prompt.messages, model=prompt.model, temperature=prompt.temperature, max_tokens=prompt.max_tokens),
+        status_code=status.HTTP_200_OK,
+        content= sendChat(prompt.messages, model=prompt.model, temperature=prompt.temperature, max_tokens=prompt.max_tokens),
         media_type="text/event-stream"
     )
