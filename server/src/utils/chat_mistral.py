@@ -38,6 +38,7 @@ def createSystemPrompt(username: str, model: str = "mistral") -> str:
     ## User Information
     The user who is talking to you is named '{username}'.
     The user job is 'admin'.
+    The user prefered language is 'french'.
     The user access to the entreprise data is 'admin'.
     """
 
