@@ -44,7 +44,7 @@ def createSystemPrompt(username: str, model: str = "mistral") -> str:
     """
 
 
-async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessage], model: MistralModel, temperature: float=0.7, max_tokens: int=1000):
+async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessage], model: MistralModel, temperature: float, max_tokens: int):
     history: list[MistralUserMessage | MistralAssistantMessage | MistralToolMessage] = conv_history.copy()
 
     async with httpx.AsyncClient() as client:
@@ -115,7 +115,6 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
                                                 )
                                             )
 
-                                print("Choice:", choice, flush=True)
                                 if choice.get("finish_reason") == "tool_calls":
                                     print("Tool calls detected in response, processing...")
                                     usingTool = True
@@ -149,13 +148,12 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
                     print(f"Error: {response.status_code} - {await response.aread()}")
                     response.raise_for_status()
 
-            print("fin de la boucle", usingTool, flush=True)
+            print("end of loop", usingTool, flush=True)
             if not usingTool:
                 break
             else:
                 print("Waiting...", flush=True)
-                await asyncio.sleep(0.1)  # Avoid error '429 Too Many Requests' if tool calls are made
-                print("Fin Waiting...", flush=True)
+                await asyncio.sleep(0.3)  # Avoid error '429 Too Many Requests' if tool calls are made
 
 
 

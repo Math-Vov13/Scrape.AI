@@ -63,7 +63,7 @@ class MistralRequest(BaseModel):
     """
     model: MistralModel
     messages: List[MistralUserMessage | MistralAssistantMessage]
-    temperature: float = 0.7
+    temperature: float = 0.2
     top_p: float = 1.0
     max_tokens: int = 1024
     stop: List[str] = None
@@ -115,7 +115,7 @@ class MistralRequestAPI(BaseModel):
     Represents a request to the Mistral API for streaming responses.
     """
     model: MistralModel
-    temperature: float= .7
+    temperature: float= 0.2
     top_p: int= 1
     max_tokens: int= 0
     stream: bool= False
@@ -123,4 +123,4 @@ class MistralRequestAPI(BaseModel):
 
     tools: List[MistralToolSchema | dict[str, str]] = []
     tool_choice: str= "auto"
-    # parallel_tool_calls: bool= True
+    parallel_tool_calls: bool= True
