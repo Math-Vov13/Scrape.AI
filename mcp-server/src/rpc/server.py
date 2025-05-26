@@ -1,12 +1,12 @@
 from fastapi import FastAPI, Request, Body
 from pathlib import Path
 from fastapi.responses import JSONResponse
-from rpc.schemas.request_sc import RPCRequest, RPCResponse
-from rpc.utils.ClassTool import Tool_Object
+from src.rpc.schemas.request_sc import RPCRequest, RPCResponse
+from src.rpc.utils.ClassTool import Tool_Object
 
 rpc = FastAPI(title="MCP-Server-ScrapeAI")
 
-BASE_PATH_TOOLS = "./rpc/tools"
+BASE_PATH_TOOLS = "./src/rpc/tools"
 tools: dict[str, Tool_Object] = {}
 request_id = 0
 
@@ -36,9 +36,12 @@ async def handle_function(request: Request, function_name: str, body: RPCRequest
         print("Tool not found in cache, loading...")
 
         Tool_Path = get_tool_path(function_name)
+        print("Tool Path:", Tool_Path)
         if Tool_Path and Tool_Path.exists() and Tool_Path.is_file():
+            print("Tool Path exists, loading tool...")
             tool = Tool_Object(Tool_Path)
             tools[Tool_Path.stem] = tool
+            print("Tool loaded successfully:", tool)
             
         else:
             return JSONResponse(

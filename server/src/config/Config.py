@@ -17,10 +17,10 @@ class Config:
     enterprise_website: str = "https://example.com"
 
     # MCP settings
-    mcp_url: str = "https://mcp.example.com"
-    mcp_tools_url: str = "https://mcp.example.com/tools"
-    mcp_tools_base_url: str = "https://mcp.example.com/tools"
-    mcp_resources_base_url: str = "https://mcp.example.com/resources"
+    mcp_url: str = "http://mcp:80"
+    mcp_tools_url: str = "/map_tools"
+    mcp_tools_base_url: str = "/tools"
+    mcp_resources_base_url: str = "/resources"
     
     # Database settings
     db_host: str = "localhost"

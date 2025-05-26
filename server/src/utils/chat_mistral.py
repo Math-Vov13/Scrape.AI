@@ -6,6 +6,7 @@ from src.schema.mistral_sc import *
 from src.schema.mcp_sc import MCPRequest
 from os import environ as env
 from async_lru import alru_cache
+import asyncio
 
 
 MISTRAL_HEADERS = {
@@ -59,7 +60,7 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
                 max_tokens=max_tokens,
                 top_p=1.0,
                 stream=True,
-                tools=await getTools(),
+                tools= await getTools(),
                 tool_choice="auto",
             ).model_dump(mode="json")
 
@@ -114,6 +115,7 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
                                                 )
                                             )
 
+                                print("Choice:", choice, flush=True)
                                 if choice.get("finish_reason") == "tool_calls":
                                     print("Tool calls detected in response, processing...")
                                     usingTool = True
@@ -135,7 +137,7 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
                                         history.append(MistralToolMessage(
                                             role="tool",
                                             name=tool_request.function.name,
-                                            content=response,
+                                            content=response["result"],
                                             tool_call_id=tool_request.id
                                         ))
 
@@ -147,8 +149,13 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
                     print(f"Error: {response.status_code} - {await response.aread()}")
                     response.raise_for_status()
 
+            print("fin de la boucle", usingTool, flush=True)
             if not usingTool:
                 break
+            else:
+                print("Waiting...", flush=True)
+                await asyncio.sleep(0.1)  # Avoid error '429 Too Many Requests' if tool calls are made
+                print("Fin Waiting...", flush=True)
 
 
 
@@ -164,16 +171,16 @@ async def callTool(call_function_id: str, tool_name: str, arguments: str) -> str
         id=call_function_id,
         method= f"tools/{tool_name}",
         params=json.loads(arguments)
-    ).model_dump_json()
+    ).model_dump(mode="json")
 
     print("Calling Tool Request:", req_body)
 
     try:
         async with httpx.AsyncClient(timeout= Timeout(timeout= 3)) as client:
-            print("url:", f"{config.mcp_tools_base_url}/{tool_name}")
+            print("url:", f"{config.mcp_url}{config.mcp_tools_base_url}/{tool_name}")
             print("headers:", MCP_HEADERS)
             response = await client.post(
-                url=f"{config.mcp_tools_base_url}/{tool_name}",
+                url=f"{config.mcp_url}{config.mcp_tools_base_url}/{tool_name}",
                 headers=MCP_HEADERS,
                 json=req_body
             )
@@ -200,29 +207,53 @@ async def getTools() -> list[dict]:
     """
     Get the list of available tools from the MCP Server.
     """
-    return [
-        {
-            "type": "function",
-            "function": {
-                "name": "getEnterpriseData",
-                "description": "Get the enterprise data",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "enterprise_name": {
-                            "type": "string",
-                            "description": "The name of the enterprise"
-                        },
-                        "enterprise_description": {
-                            "type": "string",
-                            "description": "The description of the enterprise"
-                        }
-                    },
-                    "required": ["enterprise_name", "enterprise_description"]
-                }
-            }
-        }
-    ]
+    async with httpx.AsyncClient(timeout=Timeout(timeout=5)) as client:
+        try:
+            print("url:", f"{config.mcp_url}{config.mcp_tools_url}")
+            print("headers:", MCP_HEADERS)
+            response = await client.get(
+                url=f"{config.mcp_url}{config.mcp_tools_url}",
+                headers=MCP_HEADERS
+            )
+            if response.status_code == 200:
+                tools = response.json()
+                print("Tools fetched successfully:", type(tools), tools)
+                return tools["tools"] if "tools" in tools else tools
+            else:
+                print(f"Error fetching tools: {response.status_code} - {response.text}")
+                return []
+        except httpx.RequestError as e:
+            print(f"Request error while fetching tools: {e}")
+            return []
+        except httpx.TimeoutException:
+            print("Timeout error while fetching tools")
+            return []
+        except Exception as e:
+            print(f"An unexpected error occurred while fetching tools: {e}")
+            return []
+    # return [
+    #     {
+    #         "type": "function",
+    #         "function": {
+    #             "name": "getEnterpriseData",
+    #             "description": "Get the enterprise data",
+    #             "parameters": {
+    #                 "type": "object",
+    #                 "properties": {
+    #                     "enterprise_name": {
+    #                         "type": "string",
+    #                         "description": "The name of the enterprise"
+    #                     },
+    #                     "enterprise_description": {
+    #                         "type": "string",
+    #                         "description": "The description of the enterprise"
+    #                     }
+    #                 },
+    #                 "required": ["enterprise_name", "enterprise_description"]
+    #             }
+    #         }
+    #     }
+    # ]
     # async with httpx.get(url=f"{config.mistral_api_url}/tools", headers=headers) as response:
     #     if response.status_code == 200:
     #         return response.json()
