@@ -1,0 +1,42 @@
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+
+    networks:
+      - app-network
+  
+  
+  mongodb:
+    image: mongo:latest
+    restart: always
+    # environment:
+      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      # MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+
+    ports:
+      - "27019:27017"
+    
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
+    networks:
+      - app-network
+    
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
