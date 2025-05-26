@@ -1,0 +1,13 @@
+# Tools used by AI
+
+1. "First Search"
+  input: give keywords
+  output: Retrieves all files that have one or many similar keywords in their name
+
+2. "Deep Research"
+  input: give keywords, give filenames
+  output: Search for one or more keywords in the given files
+
+3. "Retrieve Document"
+  input: give filename
+  output: Retrieve the content of the given document
