@@ -1,26 +1,49 @@
 from read_file import read_file
-from Levenshtein import Levenshtein
+from Levenshtein import Levenshtein,files_ordered
 import glob
-import time 
+import time
+import concurrent.futures
 
 def find_files():
     return glob.glob("me/**/*.txt", recursive=True) + glob.glob("me/**/*.pdf", recursive=True)
 
-
-start=time.time()
-
-files = find_files()
-print("\n\n")
-for file in files:
-    score,line = Levenshtein("Chien", read_file(file))
-
-    print(f"Score du fichier : {score}")
-    print("\n Meilleures correspondances\n")
-
-    for i in line: 
-        print(f"-- {i}")
-    print("\n--------------------------------------------")
+def analyse_file(args):
+    mot, file_path = args
+    contenu_fichier = read_file(file_path)
+    return Levenshtein(mot, contenu_fichier)
 
 
-end=time.time()
-print(end-start)
+def analyse_files(mot, files,similar_words, max_workers: int = 8):
+    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+        
+        list_exec=files_ordered(files,similar_words)
+        args_list = [(mot, file) for file in list_exec]
+
+        futures = [executor.submit(analyse_file, args) for args in args_list]
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                resultat = future.result()
+                yield resultat
+            except Exception as e:
+                print(f"Erreur lors de l'analyse: {e}")
+                yield None
+
+if __name__ == "__main__":
+    mot_recherche = "Chien"
+    similar_words=["animaux","bete","dom","chienne","chien"] 
+    files = find_files()
+    start = time.time()
+
+
+    j=0
+    for i in analyse_files(mot_recherche, files,similar_words):
+        print("---\n",j,end="---\n")
+        if i[0]>2:
+            print("\t\tBINGO")
+            print("---\n",i,end='\n\n\n\n'+str(j)+"---\n")
+        j+=1
+        
+    temps_processes = time.time() - start
+    print(f"Temps processus: {temps_processes:.2f} secondes")
+    
+
