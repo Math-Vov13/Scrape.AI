@@ -13,7 +13,7 @@ def analyse_file(args):
     return Levenshtein(mot, contenu_fichier)
 
 
-def analyse_files(mot, files,similar_words, max_workers: int = 8):
+def analyse_files(mot, files,similar_words, max_workers: int = 1):
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
         
         list_exec=files_ordered(files,similar_words)
@@ -37,10 +37,11 @@ if __name__ == "__main__":
 
     j=0
     for i in analyse_files(mot_recherche, files,similar_words):
-        print("---\n",j,end="---\n")
+        print(j,end="")
         if i[0]>2:
             print("\t\tBINGO")
-            print("---\n",i,end='\n\n\n\n'+str(j)+"---\n")
+            print(i,end="\n")
+        print("---")
         j+=1
         
     temps_processes = time.time() - start
