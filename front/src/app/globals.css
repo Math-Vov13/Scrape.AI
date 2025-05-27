@@ -1,0 +1,159 @@
+/* biome-ignore-file */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Typing cursor animation for streaming text */
+.streaming-cursor::after {
+  content: "▌";
+  display: inline-block;
+  animation: cursor-blink 1s step-end infinite;
+  margin-left: 2px;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+@keyframes cursor-blink {
+  from, to { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 240 5% 5%; /* Mistral dark background */
+    --foreground: 0 0% 98%;
+    --card: 240 5% 8%; /* Slightly lighter for cards */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 5% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 26 100% 55%; /* Mistral orange */
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 5% 18%; /* User message bubble - closer to screenshot */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 26 100% 55%; /* Mistral orange for accents */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 26 100% 55%; /* Mistral orange for focus rings */
+    --chart-1: 26 100% 55%; /* Mistral orange */
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground dark;
+  }
+}
+
+/* Custom styles for the chat interface */
+@layer components {
+  /* Login page styles */
+  .login-container {
+    background: linear-gradient(135deg, 
+      hsl(var(--background)) 0%, 
+      hsl(var(--muted)/0.3) 100%);
+  }
+
+  .login-card {
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--border)/0.5);
+  }
+
+  .login-input-icon {
+    @apply absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground;
+  }
+
+  .login-loading-spinner {
+    @apply w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin;
+  }
+
+  /* Chat interface styles */
+  .chat-message {
+    @apply rounded-xl p-4 max-w-[85%] animate-in fade-in slide-in-from-bottom-5 duration-300;
+  }
+
+  .chat-message-user {
+    @apply bg-secondary text-secondary-foreground ml-auto p-4 max-w-[85%] rounded-lg animate-in fade-in slide-in-from-bottom-5 duration-300;
+    position: relative;
+  }
+  .chat-message-user::after {
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    right: -8px;
+    border-width: 8px 0 8px 8px;
+    border-style: solid;
+    border-color: transparent transparent transparent hsl(var(--secondary));
+  }
+
+  .chat-message-ai {
+    @apply bg-popover text-popover-foreground mr-auto p-4 max-w-[85%] rounded-lg flex items-start gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-popover/50 shadow-lg;
+    position: relative;
+  }
+  .chat-message-ai::before {
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    left: -8px;
+    border-width: 8px 8px 8px 0;
+    border-style: solid;
+    border-color: transparent hsl(var(--popover)) transparent transparent;
+  }
+  
+  /* Cursor animation for text streaming */
+  .streaming-cursor::after {
+    content: "▌";
+    display: inline-block;
+    animation: cursor-blink 1s step-end infinite;
+    margin-left: 2px;
+    font-weight: normal;
+  }
+
+  @keyframes cursor-blink {
+    from, to { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .chat-input {
+    @apply w-full bg-card/50 rounded-xl border border-muted/30 p-3 focus:outline-none focus:ring-2 focus:ring-ring;
+  }
+}

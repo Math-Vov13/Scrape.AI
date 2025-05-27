@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["file:///Users/clement/Desktop/Github/Mistral-copie/src/app/typingCursor.css"],"sourcesContent":[".streaming-cursor::after {\n  content: \"▌\";\n  display: inline-block;\n  animation: cursor-blink 1s step-end infinite;\n  margin-left: 2px;\n  font-weight: normal;\n  vertical-align: middle;\n}\n\n@keyframes cursor-blink {\n  from, to { opacity: 1; }\n  50% { opacity: 0; }\n}\n"],"names":[],"mappings":"AAAA;;;;;;;;;AASA","debugId":null}}]
+}
