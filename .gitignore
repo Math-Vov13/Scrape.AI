@@ -5,6 +5,7 @@
 ##test local 
 me
 .DS_Store
+**/.DS_Store
 ## Node_modules
 node_modules
 .next
