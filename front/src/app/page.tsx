@@ -165,7 +165,10 @@ export default function Home() {
               Connexion
             </a>
           </Button>
-          <button className="p-2 hover:bg-secondary rounded-full">
+          <button 
+            className="p-2 hover:bg-secondary rounded-full"
+            onClick={() => window.location.href = '/admin'}
+          >
             <Settings className="h-5 w-5" />
           </button>
         </div>

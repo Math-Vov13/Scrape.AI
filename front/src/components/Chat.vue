@@ -6,7 +6,7 @@
         <span>Déconnexion</span>
       </button>
     </header>
-      <div class="chat-wrapper">
+    <div class="chat-wrapper">
       <div class="messages" ref="messagesContainer">
         <div v-if="messages.length === 0" class="welcome-message">
           <h2>Comment puis-je vous aider aujourd'hui ?</h2>
@@ -20,29 +20,29 @@
         </div>
       </div>
       <div class="input-area">
-      <form @submit.prevent="handleSend">
-        <textarea
-          v-model="inputText"
-          placeholder="Écrivez votre message..."
-          :disabled="isLoading"
-          rows="1"
-          ref="textareaRef"
-          @input="adjustTextareaHeight"
-          @keydown="handleKeydown"
-        ></textarea>
-      </form>
-      <button 
-        type="button" 
-        class="send-button" 
-        :disabled="isLoading || !inputText.trim()" 
-        @click="handleSend"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-          <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
-        </svg>      </button>
+        <form @submit.prevent="handleSend">
+          <textarea
+            v-model="inputText"
+            placeholder="Écrivez votre message..."
+            :disabled="isLoading"
+            ref="textareaRef"
+            @input="adjustTextareaHeight"
+            @keydown="handleKeydown"
+          ></textarea>
+        </form>
+        <button 
+          type="button" 
+          class="send-button" 
+          :disabled="isLoading || !inputText.trim()" 
+          @click="handleSend"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script setup>
@@ -57,54 +57,30 @@ const textareaRef = ref(null);
 const isLoading = ref(false);
 
 const handleLogout = () => {
-  // Ici vous pourriez faire des opérations de déconnexion comme supprimer des tokens, etc.
-  console.log('Déconnexion...');
   router.push('/');
 };
 
 const scrollToBottom = async () => {
   await nextTick();
-  const el = messagesContainer.value;
-  if (el) {
-    // Utiliser un petit délai pour s'assurer que le contenu est rendu
+  if (messagesContainer.value) {
     setTimeout(() => {
-      el.scrollTop = el.scrollHeight;
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
     }, 10);
   }
 };
 
 const adjustTextareaHeight = () => {
   const textarea = textareaRef.value;
-  if (textarea) {
-    // Conserver la hauteur actuelle avant de réinitialiser
-    const currentHeight = textarea.style.height ? parseInt(textarea.style.height) : 0;
-    
-    // Réinitialiser temporairement la hauteur pour calculer le scrollHeight
-    textarea.style.height = 'auto';
-    
-    const minHeight = 50; // hauteur minimum
-    const maxHeight = 120; // hauteur maximum environ 5 lignes
-    const scrollHeight = textarea.scrollHeight;
-    
-    // Calculer la nouvelle hauteur en s'assurant qu'elle ne diminue jamais
-    // sauf si le texte est complètement supprimé
-    let newHeight = Math.min(scrollHeight, maxHeight);
-    
-    // Ne jamais réduire la hauteur si le contenu est présent
-    // sauf si le contenu est entièrement supprimé
-    if (currentHeight > newHeight && textarea.value.length > 0) {
-      newHeight = currentHeight;
-    }
-    
-    // Définir la nouvelle hauteur (au moins la hauteur minimale)
-    textarea.style.height = `${Math.max(newHeight, minHeight)}px`;
-    
-    // Ajouter la classe show-scrollbar uniquement si la hauteur du contenu dépasse la hauteur maximale
-    if (scrollHeight > maxHeight) {
-      textarea.classList.add('show-scrollbar');
-    } else {
-      textarea.classList.remove('show-scrollbar');
-    }
+  if (!textarea) return;
+  
+  textarea.style.height = 'auto';
+  const newHeight = Math.min(Math.max(textarea.scrollHeight, 50), 120);
+  textarea.style.height = `${newHeight}px`;
+  
+  if (textarea.scrollHeight > 120) {
+    textarea.classList.add('show-scrollbar');
+  } else {
+    textarea.classList.remove('show-scrollbar');
   }
 };
 
@@ -120,21 +96,19 @@ onMounted(scrollToBottom);
 async function handleSend() {
   const text = inputText.value.trim();
   if (!text) return;
-  // Ajouter message utilisateur
+  
   messages.value.push({ sender: 'user', text });
   inputText.value = '';
   isLoading.value = true;
   
-  // Réinitialiser le textarea à sa hauteur minimale
   if (textareaRef.value) {
     textareaRef.value.style.height = '50px';
     textareaRef.value.classList.remove('show-scrollbar');
   }
   
   await scrollToBottom();
-
-  // Préparer bulle vide pour streaming réponse
   messages.value.push({ sender: 'bot', text: '' });
+  
   try {
     const apiKey = import.meta.env.VITE_MISTRAL_API_KEY;
     if (!apiKey) {
@@ -267,11 +241,9 @@ async function handleSend() {
 
 .messages {
   flex: 1;
-  padding: 20px 20px 100px 20px; /* Plus d'espace en bas pour compenser la zone de saisie dynamique */
+  padding: 20px 20px 100px 20px;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) transparent;
   display: flex;
   flex-direction: column;
   position: absolute;
@@ -279,9 +251,9 @@ async function handleSend() {
   left: 0;
   right: 0;
   bottom: 0;
-  width: 70%; /* Limiter la largeur à 70% */
-  margin: 0 auto; /* Centrer horizontalement */
-  margin-top: -10px; /* Monter légèrement */
+  width: 70%;
+  margin: 0 auto;
+  margin-top: -10px;
 }
 
 .messages::-webkit-scrollbar {
@@ -331,16 +303,13 @@ async function handleSend() {
   line-height: 1.5;
   width: fit-content;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  max-height: 400px; /* Limiter la hauteur maximale des messages */
-  overflow-y: auto; /* Activer le défilement vertical si nécessaire */
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) transparent;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .message::-webkit-scrollbar {
   width: 6px;
   background-color: transparent;
-  opacity: 0;
 }
 
 .message::-webkit-scrollbar-track {
@@ -386,29 +355,27 @@ async function handleSend() {
   background-color: var(--bg-panel);
   padding: 16px;
   align-items: center;
-  min-height: 82px; /* Hauteur minimale pour la zone d'input */
-  width: 70%; /* Même largeur que la zone de messages */
+  min-height: 82px;
+  width: 70%;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%); /* Pour centrer avec la transformation */
-  border-radius: 12px 12px 0 0; /* Arrondir les coins supérieurs */
-  transition: height 0.2s ease; /* Transition fluide pour le changement de hauteur */
+  transform: translateX(-50%);
+  border-radius: 12px 12px 0 0;
 }
 
 .input-area form {
   position: relative;
-  width: calc(100% - 70px); /* Laisser de l'espace pour le bouton */
+  width: calc(100% - 70px);
   display: flex;
   align-items: center;
-  overflow: hidden; /* S'assurer que rien ne dépasse du formulaire */
-  border-radius: 20px; /* Cohérent avec le textarea */
+  border-radius: 20px;
 }
 
 .input-area textarea {
   flex: 1;
-  padding: 14px 10px 14px 14px; /* Réduction du padding droit */
+  padding: 14px 10px 14px 14px;
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
@@ -416,25 +383,22 @@ async function handleSend() {
   color: var(--text-primary);
   font-size: 15px;
   resize: none;
-  min-height: 50px; /* Hauteur minimale pour le textarea */
-  max-height: 120px; /* Hauteur maximale pour le textarea */
+  min-height: 50px;
+  max-height: 120px;
   font-family: inherit;
   transition: background-color 0.2s, border-color 0.2s, height 0.2s ease;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
   overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) transparent;
-  box-sizing: border-box; /* S'assurer que le padding est inclus dans la largeur */
+  box-sizing: border-box;
 }
 
-/* Afficher la scrollbar uniquement quand la zone atteint sa hauteur max */
 .input-area textarea.show-scrollbar {
   overflow-y: auto;
-  overflow-x: hidden; /* Empêcher le défilement horizontal */
+  overflow-x: hidden;
 }
 
 .input-area textarea::-webkit-scrollbar {
-  width: 4px; /* Scrollbar plus fine */
+  width: 4px;
   background-color: transparent;
 }
 
@@ -460,19 +424,6 @@ async function handleSend() {
   outline: none;
   border-color: var(--accent);
   background-color: rgba(50, 50, 50, 0.9);
-}
-
-/* Masque pour assurer que la scrollbar est bien contenue */
-.input-area form::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 2px;
-  background-color: transparent;
-  pointer-events: none;
-  border-radius: 0 20px 20px 0;
 }
 
 .input-area textarea::placeholder {
@@ -512,17 +463,5 @@ async function handleSend() {
   fill: white;
   width: 22px;
   height: 22px;
-}
-
-/* Animation pour le chargement de réponses */
-@keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
-}
-
-.message.bot:empty::after {
-  content: "...";
-  animation: pulse 1.5s infinite;
 }
 </style>
