@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -75,25 +76,18 @@ export default function AdminPage() {
     apiCalls: '1,247'
   };
 
-  const filteredData = () => {
-    switch (activeTab) {
-      case 'users':
-        return users.filter(user => 
-          user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      case 'files':
-        return files.filter(file => 
-          file.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      case 'conversations':
-        return conversations.filter(conv => 
-          conv.user.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      default:
-        return [];
-    }
-  };
+  const filteredUsers = users.filter(user => 
+    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredFiles = files.filter(file => 
+    file.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredConversations = conversations.filter(conv => 
+    conv.user.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -102,10 +96,10 @@ export default function AdminPage() {
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" asChild>
-              <a href="/" className="flex items-center space-x-2">
+              <Link href="/" className="flex items-center space-x-2">
                 <ArrowLeft className="h-4 w-4" />
                 <span>Retour au Chat</span>
-              </a>
+              </Link>
             </Button>
             <h1 className="text-2xl font-bold">Administration Scrape.AI</h1>
           </div>
@@ -200,7 +194,7 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredData().map((user) => (
+                      {filteredUsers.map((user) => (
                         <tr key={user.id} className="border-b">
                           <td className="p-4 font-medium">{user.username}</td>
                           <td className="p-4 text-muted-foreground">{user.email}</td>
@@ -261,7 +255,7 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredData().map((file) => (
+                      {filteredFiles.map((file) => (
                         <tr key={file.id} className="border-b">
                           <td className="p-4 font-medium">{file.name}</td>
                           <td className="p-4 text-muted-foreground">{file.type}</td>
@@ -318,7 +312,7 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredData().map((conv) => (
+                      {filteredConversations.map((conv) => (
                         <tr key={conv.id} className="border-b">
                           <td className="p-4 font-medium">{conv.user}</td>
                           <td className="p-4 text-muted-foreground">{conv.messages}</td>
