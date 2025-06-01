@@ -96,7 +96,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/" className="flex items-center space-x-2">
+              <Link href="/chat" className="flex items-center space-x-2">
                 <ArrowLeft className="h-4 w-4" />
                 <span>Retour au Chat</span>
               </Link>
