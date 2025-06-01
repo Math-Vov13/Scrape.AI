@@ -1,10 +1,23 @@
 import { NextRequest } from 'next/server';
 
+type ChatHistory = {
+  id: string;             // Unique identifier for the chat history
+  role: string;           // Role of the user in the chat (e.g., "user", "admin")
+  content: string;        // Array of messages in the chat history
+  createdAt: Date;        // Timestamp of when the chat history was created
+}
+
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY || 'S2nqvZQmrdaRwhNhgcMT3M7uyHcjAK5D';
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt } = await request.json();
+    const { History } = await request.json();
+
+    // Add a System Prompt here :)
+    const full_history = History.map((msg: { role: any; content: any; }) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
     
     // Use fetch directly instead of the Mistral SDK to avoid constructor issues
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
@@ -15,23 +28,23 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         model: 'mistral-small',
-        messages: [{ role: 'user', content: prompt }],
+        messages: full_history,
         stream: true,
       }),
     });
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Mistral API error:', response.status, errorText);
+      console.error('ScrapeAI API error:', response.status, errorText);
       return new Response(
-        JSON.stringify({ error: `Mistral API error: ${response.status}` }),
+        JSON.stringify({ error: `ScrapeAI API error: ${response.status}` }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     if (!response.body) {
       return new Response(
-        JSON.stringify({ error: 'No response body from Mistral API' }),
+        JSON.stringify({ error: 'No response body from ScrapeAI API' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -88,9 +101,9 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err) {
-    console.error('Mistral API error:', err);
+    console.error('ScrapeAI API error:', err);
     return new Response(
-      JSON.stringify({ error: 'Error connecting to Mistral AI' }),
+      JSON.stringify({ error: 'Error connecting to ScrapeAI Chatbot' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

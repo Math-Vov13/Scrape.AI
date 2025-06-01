@@ -85,7 +85,7 @@ export default function SignupPage() {
               Créer un compte
             </h1>
             <p className="text-muted-foreground">
-              Rejoignez la communauté Mistral AI
+              Rejoignez la communauté d'entreprises qui utilisent Scrape AI pour transformer leurs données en insights précieux.
             </p>
           </div>
         </div>

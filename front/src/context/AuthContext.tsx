@@ -3,8 +3,17 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+
+type User = {
+  id: string;
+  email: string;
+  username: string;
+  full_name: string;
+  admin: boolean;
+};
+
 type AuthContextType = {
-  user: any;
+  user: User | null;
   isAdmin: boolean;
   loading?: boolean;
   login: (email: string, password: string) => Promise<boolean>;

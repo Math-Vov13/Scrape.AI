@@ -1,43 +1,51 @@
 "use client";
 
-import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ThumbsUp, ThumbsDown, RefreshCw, Copy, Plus, Send, Star, Settings } from "lucide-react";
 import { useAuth } from '../../context/AuthContext';
 import ProtectedRoute from '../../components/ProtectedRoute';
-import { time } from "console";
-// Mistral API key (provided by user)
-const MISTRAL_API_KEY = "S2nqvZQmrdaRwhNhgcMT3M7uyHcjAK5D";
+
 
 interface Message {
-  id: string;
-  content: string;
-  isUser: boolean;
-  timestamp: string;
-  isStreaming?: boolean;
-  isWaiting?: boolean;
+  id: string;             // Unique identifier for each message
+  content: string;        // The text content of the message
+  isUser: boolean;        // True if the message is from the user, false if from AI
+  timestamp: string;      // Timestamp of when the message was sent, formatted as "HH:MM"
+
+  tools?: string[];       // List of tools used in the message, if any
+  toolCalls?: string[];   // List of tool calls made in the message, if any
+
+  error?: boolean;        // Error message if any
+  isStreaming?: boolean;  // True if the message is currently being streamed
+  isWaiting?: boolean;    // True if the AI is still processing the message
+}
+
+type ChatHistory = {
+  id: string;             // Unique identifier for the chat history
+  role: string;           // Role of the user in the chat (e.g., "user", "admin")
+  content: string;        // Array of messages in the chat history
+  createdAt: Date;        // Timestamp of when the chat history was created
 }
 
 const startConversation = [
-  "Bonjour, comment puis-je vous aider aujourd'hui ?",
-  "Salut ! Que puis-je faire pour vous ?",
-  "Bienvenue ! Comment puis-je vous assister ?",
-  "Bonjour ! Avez-vous une question ou un sujet en tête ?",
-  "Salut ! Je suis là pour répondre à vos questions.",
-  "Bonjour ! Souhaitez-vous un résumé des dernières actualités dans votre entreprise aujourd'hui ?",
-  "Salut ! Voulez-vous que je vous rappelle vos prochaines tâches à accomplir ?",
-  "Bonjour ! Quelles sont vos envies ou priorités pour aujourd’hui ? Je peux vous aider à les organiser.",
-  "Bienvenue ! Avez-vous besoin d’accéder à des informations sur un document spécifique ?",
-  "Hello ! Je suis prêt à vous assister, par où démarrons-nous ?",
+  ", comment puis-je vous aider aujourd'hui ?",
+  ", que puis-je faire pour vous ?",
+  ". Comment puis-je vous assister ?",
+  ", avez-vous une question ou un sujet en tête ?",
+  ", je suis là pour répondre à vos questions.",
+  ", je suis là pour répondre à vos questions. Souhaitez-vous un résumé des dernières actualités dans votre entreprise aujourd'hui ?",
+  ". Voulez-vous que je vous rappelle vos prochaines tâches à accomplir ?",
+  ", quelles sont vos envies ou priorités pour aujourd’hui ? Je peux vous aider à les organiser.",
+  ", avez-vous besoin d’accéder à des informations sur un document spécifique ? Ou juste discuter de vos envies ?",
+  ", je suis prêt à vous assister ! Par où démarrons-nous aujourd'hui ?",
 ]
 
 export default function Home() {
   const { user, logout } = useAuth();
-  
+
   const [messages, setMessages] = useState<Message[]>([]);
-  const [responseIndex, setResponseIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [isWaitingResponse, setIsWaitingResponse] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -51,12 +59,12 @@ export default function Home() {
     setMessages([
       {
         id: "1",
-        content: startConversation[Math.floor(Math.random() * startConversation.length)],
+        content: `Bonjour **${user?.full_name}**` + startConversation[Math.floor(Math.random() * startConversation.length)],
         isUser: false,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
-  }, [1]);
+  }, [user]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -76,9 +84,60 @@ export default function Home() {
 
 
 
+  async function sendPrompt(prompt: string, message_id: string) {
+    if (!prompt || isBlocking) return;
+
+    // Prepare chat history for the API
+    const History: ChatHistory[] = messages.slice(1).map((msg) => ({
+      id: msg.id,
+      role: msg.isUser ? 'user' : 'assistant',
+      content: msg.content,
+      createdAt: new Date(),
+    }));
+
+    // Add actual user prompt to history
+    History.push({
+      id: message_id,
+      role: 'user',
+      content: prompt,
+      createdAt: new Date(),
+    });
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ History })
+      });
+
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const errJson = await res.json();
+        return errJson.error || "Server error. We're unable to process your request at this time.";
+      }
+
+      if (!res.ok || !res.body) {
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      return res.body.getReader();
+
+    } catch (err) {
+      console.error(err);
+
+    }
+  }
+
   const handleSendMessage = () => {
     const prompt = inputValue.trim();
     if (!prompt || isBlocking) return;
+
+    // When error occurs, remove the last two messages (User response and error message)
+    if (messages[messages.length - 1].error === true) {
+      setMessages((prev) => prev.slice(0, -2));
+    }
 
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -96,52 +155,43 @@ export default function Home() {
     if (inputRef.current) inputRef.current.style.height = 'auto';
     setIsWaitingResponse(true);
     // Create placeholder AI message for streaming
-    const aiMessageId = (Date.now() + 1).toString();
+    const new_MessageId = (Date.now() + 1).toString();
+
     setMessages(prev => [...prev, {
-      id: aiMessageId,
+      id: new_MessageId,
       content: "",
       isUser: false,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isStreaming: true,
+      isStreaming: false, // Initially not streaming
+      error: false, // No error initially
       isWaiting: true, // Flag to show waiting indicator
     }]);
-    // Call Mistral streaming API
+
+    // Call ChatBot streaming API
     (async () => {
+      const api_response = await sendPrompt(prompt, new_MessageId);
+      if (!api_response || typeof api_response !== 'object') {
+        setMessages(prev => prev.map(msg => msg.id === new_MessageId
+          ? { ...msg, error: true, isWaiting: false, isStreaming: false, content: api_response || 'Erreur de réponse.' }
+          : msg
+        ));
+        setIsWaitingResponse(false);
+        return;
+      }
+
       try {
-        const res = await fetch("/api/chat", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ prompt })
-        });
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          // Proxy returned an error JSON
-          const errJson = await res.json();
-          setMessages(prev => prev.map(msg => msg.id === aiMessageId
-            ? { ...msg, isStreaming: false, content: errJson.error || 'Erreur serveur' }
-            : msg
-          ));
-          setIsWaitingResponse(false);
-          return;
-        }
-        if (!res.ok || !res.body) {
-          throw new Error(`API error: ${res.status}`);
-        }
-        const reader = res.body.getReader();
         const decoder = new TextDecoder();
         // Process each chunk as it arrives
         let done = false;
         while (!done) {
-          const { value, done: doneReading } = await reader.read();
+          const { value, done: doneReading } = await api_response.read();
           done = doneReading;
 
           if (value) {
             const text = decoder.decode(value, { stream: !done });
             if (text) {
               setMessages(prev => prev.map(msg =>
-                msg.id === aiMessageId
+                msg.id === new_MessageId
                   ? {
                     ...msg,
                     content: msg.content + text,
@@ -155,13 +205,13 @@ export default function Home() {
 
         // Mark streaming as complete
         setMessages(prev => prev.map(msg =>
-          msg.id === aiMessageId
+          msg.id === new_MessageId
             ? { ...msg, isStreaming: false }
             : msg
         ));
       } catch (err) {
         console.error(err);
-        setMessages(prev => prev.map(msg => msg.id === aiMessageId ? { ...msg, isStreaming: false, content: 'Erreur de réponse.' } : msg));
+        setMessages(prev => prev.map(msg => msg.id === new_MessageId ? { ...msg, error: true, isWaiting: false, isStreaming: false, content: 'Erreur de réponse.' } : msg));
       } finally {
         setIsWaitingResponse(false);
       }

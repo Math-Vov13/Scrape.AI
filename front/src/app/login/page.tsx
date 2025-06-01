@@ -63,7 +63,7 @@ export default function LoginPage() {
               Connexion
             </h1>
             <p className="text-muted-foreground">
-              Connectez-vous à votre compte Mistral AI
+              Connectez-vous à votre compte
             </p>
           </div>
         </div>

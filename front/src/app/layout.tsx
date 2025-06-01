@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mistral AI Chat Clone",
-  description: "A clone of the Mistral AI chat interface",
+  title: "Scrape AI",
+  description: "Scrape AI is a web application that allows you to scrape data from your company files and respond to your questions with our AI.",
 };
 
 export default function RootLayout({
