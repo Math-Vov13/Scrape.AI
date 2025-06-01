@@ -40,6 +40,8 @@ export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
 
   const login = async (email: any, password: any) => {
     try {
+      logout(); // Déconnexion avant de se reconnecter
+
       if (!email || !password) {
         throw new Error('Email et mot de passe requis');
       }

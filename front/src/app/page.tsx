@@ -122,7 +122,7 @@ export default function ScrapeAILanding() {
                                 <p className="text-white">"What's our remote work policy for 2025?"</p>
                             </div>
                             <div className="bg-amber-500/20 p-3 rounded-lg border border-amber-500/30">
-                                <p className="text-amber-300 text-sm">Scrape.AI:</p>
+                                <p className="text-amber-300 text-sm">Assistant:</p>
                                 <p className="text-white">According to HR-Policy-2025.pdf, your remote work policy allows up to 3 days per week from home...</p>
                             </div>
                         </div>
@@ -224,13 +224,17 @@ export default function ScrapeAILanding() {
                         Join the companies that have already revolutionized their productivity with Scrape.AI
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-black px-10 py-4 rounded-full text-xl font-semibold hover:from-orange-600 hover:to-amber-600 transition-all duration-200 transform hover:scale-105 shadow-2xl shadow-orange-500/25">
-                            Start Free Trial
-                            <ArrowRight className="inline-block ml-2 w-6 h-6" />
-                        </button>
-                        <button className="border border-orange-400 px-10 py-4 rounded-full text-xl font-semibold hover:bg-orange-500/10 hover:border-orange-300 transition-all duration-200">
-                            Contact Sales
-                        </button>
+                        <Link href="/chat">
+                            <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-black px-10 py-4 rounded-full text-xl font-semibold hover:from-orange-600 hover:to-amber-600 transition-all duration-200 transform hover:scale-105 shadow-2xl shadow-orange-500/25">
+                                Start Free Trial
+                                <ArrowRight className="inline-block ml-2 w-6 h-6" />
+                            </button>
+                        </Link>
+                        <Link href="/contact">
+                            <button className="border border-orange-400 px-10 py-4 rounded-full text-xl font-semibold hover:bg-orange-500/10 hover:border-orange-300 transition-all duration-200">
+                                Contact Sales
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </div>

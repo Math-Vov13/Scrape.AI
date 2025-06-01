@@ -6,8 +6,8 @@ import { useAuth } from '../context/AuthContext';
 
 import { ReactNode } from 'react';
 
-const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { user, loading } = useAuth();
+const ProtectedRoute = ({ children, validateAdmin }: { children: ReactNode, validateAdmin: boolean }) => {
+  const { user, isAdmin, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -15,7 +15,12 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
     if (user === null) {
       router.push('/login');
     }
-  }, [loading]);
+
+    console.log('validate Admin:', validateAdmin);
+    if (validateAdmin && isAdmin === false) {
+      router.push('/');
+    }
+  }, [loading, user, validateAdmin]);
 
   return user ? children : null;
 };

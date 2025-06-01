@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ThumbsUp, ThumbsDown, RefreshCw, Copy, Plus, Send, Star, Settings } from "lucide-react";
 import { useAuth } from '../../context/AuthContext';
 import ProtectedRoute from '../../components/ProtectedRoute';
+import { time } from "console";
 // Mistral API key (provided by user)
 const MISTRAL_API_KEY = "S2nqvZQmrdaRwhNhgcMT3M7uyHcjAK5D";
 
@@ -44,13 +45,15 @@ export default function Home() {
   const initialInputHeight = useRef<number>(0);
   const isBlocking = isWaitingResponse; // block send until AI finishes
 
+
+
   useEffect(() => {
     setMessages([
       {
         id: "1",
         content: startConversation[Math.floor(Math.random() * startConversation.length)],
         isUser: false,
-        timestamp: "16:58",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
   }, [1]);
@@ -70,6 +73,8 @@ export default function Home() {
       initialInputHeight.current = inputRef.current.clientHeight;
     }
   }, []);
+
+
 
   const handleSendMessage = () => {
     const prompt = inputValue.trim();
@@ -164,7 +169,7 @@ export default function Home() {
   };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute validateAdmin={false}>
       <div className="flex flex-col h-screen bg-background relative">
         {/* Admin button */}
         <header className="p-4 flex items-center border-b border-border">
