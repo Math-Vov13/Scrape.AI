@@ -29,10 +29,17 @@ async def register(body: UserCreate = Body(...)):
 async def login(body: UserLogin = Body(...)):
     user = await user_db.getUser(body.email, body.password)
     if not user:
-        return JSONResponse(status_code= status.HTTP_401_UNAUTHORIZED, content={
-            "message": "Invalid credentials!",
+        return JSONResponse(status_code= status.HTTP_404_NOT_FOUND, content={
+            "message": "User does not exists!",
         })
 
     return JSONResponse(status_code= status.HTTP_200_OK, content={
         "message": "You logged in successfully!",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "full_name": user.full_name,
+            "email": user.email,
+            "admin": user.admin,
+        }
     })

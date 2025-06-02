@@ -8,12 +8,14 @@ class UserBase(BaseModel):
     email: EmailStr
     password: str
     full_name: Optional[str] = None
+    admin: Optional[bool] = False
     authorization: Optional[str] = None
     disabled: Optional[bool] = False
     created_at: Optional[datetime] = None
 
 class UserCreate(BaseModel):
     username: str
+    admin: Optional[bool] = False
     email: EmailStr
     password: str
     full_name: str

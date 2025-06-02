@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
     await connector.close_connection()
     logger.info("MongoDB connection closed")
 
-app = FastAPI(lifespan= lifespan)
+app = FastAPI(lifespan= lifespan, root_path="/api/v1")
 
 @app.get("/")
 async def root():

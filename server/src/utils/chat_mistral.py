@@ -49,6 +49,7 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
 
     async with httpx.AsyncClient() as client:
         while True:
+            print("Starting new chat loop", flush=True)
             buffer = ""
             tool_calls: list[MistralToolCallRequest] = []
             usingTool = False
@@ -140,7 +141,7 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
                                             tool_call_id=tool_request.id
                                         ))
 
-                                        yield f"[TOOL_CALL] {tool_request.function.name} - {tool_request.function.arguments}\n"
+                                        yield f"[TOOL_CALL] name: {tool_request.function.name}, parameters: {tool_request.function.arguments}\n"
 
                             except json.JSONDecodeError:
                                 continue
@@ -154,6 +155,7 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
             else:
                 print("Waiting...", flush=True)
                 await asyncio.sleep(0.3)  # Avoid error '429 Too Many Requests' if tool calls are made
+    print("Chat loop finished", flush=True)
 
 
 
