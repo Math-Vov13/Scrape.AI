@@ -123,17 +123,18 @@ export async function POST(request: NextRequest) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
+            buffer += decoder.decode(value, { stream: true });
+            let lines = buffer.split('<||CHUNK||>');
+            buffer = lines.pop() || '';
+            lines = lines.filter(line => line.trim() !== '');
 
           for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed) continue;
-            if (trimmed.startsWith('[DONE]')) break;
+            if (line.startsWith('[DONE]')) break;
 
-            const dataType = trimmed.split(':')[0].trim();
-            var data = trimmed.slice(dataType.length + 2); // Remove type prefix and colon
+            const dataType = line.split(':')[0];
+            var data = line.slice(dataType.length + 2); // Remove type prefix and colon
+            if (!data) continue; // Skip empty lines
+
             if (dataType === 'data' || dataType === 'tool') {
               // Handle regular data messages
               if (dataType === 'tool') {
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest) {
               }
 
             } else if (dataType === 'error') {
-              console.error('Error from stream:', trimmed);
+              console.error('Error from stream:', line);
               await writer.write(encoder.encode("[ERROR]"));
               return;
               
