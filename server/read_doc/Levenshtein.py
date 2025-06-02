@@ -48,7 +48,6 @@ def score_folders(words_list,folder_names):
     last_word=[]
     for j in folder_names:
         for word in words_list:
-
             if word==last_word and len(words_list)>1:
                 list_file_score.append([j,best_score])
             folder_name = j.rsplit("/")[-1]
@@ -113,11 +112,11 @@ def Levenshtein(target, text_lines):
                 best_score=score
         
         if len(result)<5:
-            result.append([line,best_score])
+            result.append([filtered,best_score])
             result.sort(key=lambda x: x[1], reverse=True)
         else:
             if best_score > result[-1][1]:
-                result[-1] = [line, best_score]
+                result[-1] = [filtered, best_score]
                 result.sort(key=lambda x: x[1], reverse=True)
         best_score=0
 

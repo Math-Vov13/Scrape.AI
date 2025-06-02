@@ -1,7 +1,9 @@
 from docx import Document
 import easyocr
 import csv
-from PyPDF2 import PdfReader
+import fitz  
+
+
 
 
 def txt_reader(file_name):
@@ -22,14 +24,16 @@ def csv_reader(file_name):
     result = reader.readtext(file_name)
     return str(result)"""
 def pdf_reader(file_name):
-    reader = PdfReader(file_name)
-    lines = []
-    for page in reader.pages:
-        text = page.extract_text()
-        if text:
-            for line in text.splitlines():
-                lines.append(line)
-    return lines
+    doc = fitz.open(file_name)
+    lignes = []
+    for page in doc:
+        for bloc in page.get_text("dict")["blocks"]:
+            if "lines" in bloc:
+                for ligne in bloc["lines"]:
+                    texte = " ".join([span["text"] for span in ligne["spans"]])
+                    lignes.append(texte)
+    return lignes
+
 
 def read_file(file_name):
     if file_name.endswith(".txt"):
@@ -42,3 +46,6 @@ def read_file(file_name):
         return pdf_reader(file_name)
     """elif file_name.endswith(".png"):
         return img_reader(file_name)"""
+    
+
+
