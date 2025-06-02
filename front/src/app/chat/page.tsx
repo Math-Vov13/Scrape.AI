@@ -8,6 +8,13 @@ import { useAuth } from '../../context/AuthContext';
 import ProtectedRoute from '../../components/ProtectedRoute';
 
 
+type ToolCalled = {
+  id: string;             // Unique identifier for the tool call
+  name: string;           // Name of the tool called
+  description: string;    // Description of what the tool does
+  parameters: Record<string, any>; // Parameters passed to the tool
+}
+
 interface Message {
   id: string;             // Unique identifier for each message
   content: string;        // The text content of the message
@@ -15,7 +22,7 @@ interface Message {
   timestamp: string;      // Timestamp of when the message was sent, formatted as "HH:MM"
 
   tools?: string[];       // List of tools used in the message, if any
-  toolCalls?: string[];   // List of tool calls made in the message, if any
+  toolCalls?: ToolCalled[];   // List of tool calls made in the message, if any
 
   error?: boolean;        // Error message if any
   isStreaming?: boolean;  // True if the message is currently being streamed
@@ -112,10 +119,10 @@ export default function Home() {
         body: JSON.stringify({ History })
       });
 
-      const contentType = res.headers.get('content-type') || '';
-      if (contentType.includes('application/json')) {
-        const errJson = await res.json();
-        return errJson.error || "Server error. We're unable to process your request at this time.";
+      if (res.status === 401) {
+        // Unauthorized, redirect to login
+        logout(); // Ensure user is logged out
+        throw new Error("Unauthorized. Please log in.");
       }
 
       if (!res.ok || !res.body) {
@@ -125,7 +132,7 @@ export default function Home() {
       return res.body.getReader();
 
     } catch (err) {
-      console.error(err);
+      return err instanceof Error ? err.message : 'An error occurred while sending the prompt.';
 
     }
   }
@@ -190,6 +197,24 @@ export default function Home() {
           if (value) {
             const text = decoder.decode(value, { stream: !done });
             if (text) {
+              if (text.startsWith('[ERROR]')) {
+                throw new Error("Internal Error!")
+              }
+
+              if (text.startsWith('<||TOOL||>')) {
+                console.log('Tool call detected:', text);
+                const toolData = text.slice(10).replace(/<\|\|END_TOOL\|\|>$/, '').trim();
+                const toolCall: ToolCalled = JSON.parse(toolData);
+                setMessages(prev => prev.map(msg =>
+                  msg.id === new_MessageId
+                    ? {
+                      ...msg,
+                      toolCalls: msg.toolCalls ? [...msg.toolCalls, toolCall] : [toolCall],
+                      isWaiting: false // Remove waiting indicator once streaming starts
+                    }
+                    : msg
+                ));
+              }
               setMessages(prev => prev.map(msg =>
                 msg.id === new_MessageId
                   ? {
@@ -256,30 +281,42 @@ export default function Home() {
           ref={chatContainerRef}
           className="flex-1 overflow-auto p-4 space-y-6"
         >
-          {messages.map((message) => (
+            {messages.map((message) => (
             <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
-              <div className={`${message.isUser ? 'chat-message-user' : 'chat-message-ai'}`}>
-                {!message.isUser && (
-                  <div className="flex-shrink-0">
-                    <Avatar className="h-8 w-8 bg-primary text-primary-foreground" />
+              <div
+              className={`
+                ${message.isUser ? 'chat-message-user' : 'chat-message-ai'}
+                ${message.error ? 'bg-red-400 border border-red-400 text-red-700' : ''}
+              `}
+              style={message.error ? { borderRadius: '0.75rem', padding: '0.75rem 1rem' } : {}}
+              >
+              {!message.isUser && (
+                <div className="flex-shrink-0">
+                  <Avatar className="h-8 w-8 bg-primary border border-red-900 text-primary-foreground" />
+                </div>
+              )}
+              <div className="flex flex-col">
+                <div
+                className={`
+                  text-sm
+                  ${!message.isUser && message.isStreaming ? 'streaming-cursor' : ''}
+                  ${message.error ? 'font-semibold' : ''}
+                `}
+                >
+                {!message.isUser && message.isWaiting ? (
+                  <div className="flex items-center space-x-1">
+                  <div className="h-2 w-2 bg-foreground/70 rounded-full animate-pulse"></div>
+                  <div className="h-2 w-2 bg-foreground/70 rounded-full animate-pulse delay-150"></div>
+                  <div className="h-2 w-2 bg-foreground/70 rounded-full animate-pulse delay-300"></div>
                   </div>
+                ) : (
+                  message.content
                 )}
-                <div className="flex flex-col">
-                  <div className={`text-sm ${!message.isUser && message.isStreaming ? 'streaming-cursor' : ''}`}>
-                    {!message.isUser && message.isWaiting ? (
-                      <div className="flex items-center space-x-1">
-                        <div className="h-2 w-2 bg-foreground/70 rounded-full animate-pulse"></div>
-                        <div className="h-2 w-2 bg-foreground/70 rounded-full animate-pulse delay-150"></div>
-                        <div className="h-2 w-2 bg-foreground/70 rounded-full animate-pulse delay-300"></div>
-                      </div>
-                    ) : (
-                      message.content
-                    )}
-                  </div>
                 </div>
               </div>
+              </div>
             </div>
-          ))}
+            ))}
 
         </div>
 

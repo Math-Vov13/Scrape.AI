@@ -1,15 +1,17 @@
+import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
 
-type ChatHistory = {
-  id: string;             // Unique identifier for the chat history
-  role: string;           // Role of the user in the chat (e.g., "user", "admin")
-  content: string;        // Array of messages in the chat history
-  createdAt: Date;        // Timestamp of when the chat history was created
-}
+// const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
-const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY || 'S2nqvZQmrdaRwhNhgcMT3M7uyHcjAK5D';
 
 export async function POST(request: NextRequest) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token')?.value;
+
+  if (!token) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const { History } = await request.json();
 
@@ -18,21 +20,42 @@ export async function POST(request: NextRequest) {
       role: msg.role,
       content: msg.content,
     }));
-    
+
     // Use fetch directly instead of the Mistral SDK to avoid constructor issues
-    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    // const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+    //   },
+    //   body: JSON.stringify({
+    //     model: 'mistral-small',
+    //     messages: full_history,
+    //     stream: true,
+    //   }),
+    // });
+
+    const response = await fetch(`${process.env.API_URL || "http://localhost:8080/api/v1"}/chat/completion`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
-        model: 'mistral-small',
+        model: 'mistral-small-latest',
         messages: full_history,
-        stream: true,
+        temperature: 0.2,
+        max_tokens: 5000,
       }),
     });
-    
+
+    if (response.status === 401) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('ScrapeAI API error:', response.status, errorText);
@@ -57,6 +80,41 @@ export async function POST(request: NextRequest) {
 
     // Process the streaming response
     (async () => {
+      // try {
+      //   const reader = response.body!.getReader();
+      //   let buffer = '';
+
+      //   while (true) {
+      //     const { done, value } = await reader.read();
+      //     if (done) break;
+
+      //     buffer += decoder.decode(value, { stream: true });
+      //     const lines = buffer.split('\n');
+      //     buffer = lines.pop() || '';
+
+      //     for (const line of lines) {
+      //       const trimmed = line.trim();
+      //       if (!trimmed || !trimmed.startsWith('data: ')) continue;
+
+      //       const data = trimmed.slice(6); // Remove 'data: '
+      //       if (data.startsWith('[DONE]') || data.startsWith('[ERROR]')) break;
+
+      //       try {
+      //         const parsed = JSON.parse(data);
+      //         const content = parsed.choices?.[0]?.delta?.content;
+      //         if (content) {
+      //           await writer.write(encoder.encode(content));
+      //         }
+      //       } catch (e) {
+      //         // Skip invalid JSON
+      //       }
+      //     }
+      //   }
+      // } catch (error) {
+      //   console.error('Stream processing error:', error);
+      // } finally {
+      //   await writer.close();
+      // }
       try {
         const reader = response.body!.getReader();
         let buffer = '';
@@ -71,19 +129,32 @@ export async function POST(request: NextRequest) {
 
           for (const line of lines) {
             const trimmed = line.trim();
-            if (!trimmed || !trimmed.startsWith('data: ')) continue;
-            
-            const data = trimmed.slice(6); // Remove 'data: '
-            if (data === '[DONE]') break;
+            if (!trimmed) continue;
+            if (trimmed.startsWith('[DONE]')) break;
 
-            try {
-              const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                await writer.write(encoder.encode(content));
+            const dataType = trimmed.split(':')[0].trim();
+            var data = trimmed.slice(dataType.length + 2); // Remove type prefix and colon
+            if (dataType === 'data' || dataType === 'tool') {
+              // Handle regular data messages
+              if (dataType === 'tool') {
+                data = '<||TOOL||>' + data + '<||END_TOOL||>';
               }
-            } catch (e) {
-              // Skip invalid JSON
+              try {
+                await writer.write(encoder.encode(data));
+              } catch (e) {
+                // Handle write errors
+                console.error('Write error:', e);
+              }
+
+            } else if (dataType === 'error') {
+              console.error('Error from stream:', trimmed);
+              await writer.write(encoder.encode("[ERROR]"));
+              return;
+              
+            } else {
+              console.warn('Unknown data type:', dataType);
+              await writer.write(encoder.encode("[ERROR]"));
+              return;
             }
           }
         }
@@ -94,10 +165,12 @@ export async function POST(request: NextRequest) {
       }
     })();
 
+    console.log('Stream processing completed successfully');
+
     return new Response(stream.readable, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-store',
       },
     });
   } catch (err) {
