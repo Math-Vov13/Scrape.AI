@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
-        model: 'mistral-small-latest',
+        model: 'mistral-large-latest',
         messages: full_history,
         temperature: 0.2,
         max_tokens: 5000,
