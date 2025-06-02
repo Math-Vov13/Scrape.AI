@@ -1,0 +1,13 @@
+.streaming-cursor::after {
+  content: "▌";
+  display: inline-block;
+  animation: cursor-blink 1s step-end infinite;
+  margin-left: 2px;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+@keyframes cursor-blink {
+  from, to { opacity: 1; }
+  50% { opacity: 0; }
+}
