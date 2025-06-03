@@ -2,18 +2,17 @@ import json
 import httpx
 from httpx import Timeout
 from src.config.Config import config
-from src.schema.mistral_sc import *
+from src.schema.openai_sc import *
 from src.schema.mcp_sc import MCPRequest
 from os import environ as env
 from async_lru import alru_cache
 import asyncio
 
 
-MISTRAL_HEADERS = {
+OPENAI_HEADERS = {
     "Content-Type": "application/json",
     "Accept": "application/json",
-    "User-Agent": "MistralClient/1.0",
-    "Authorization": f"Bearer {env['MISTRAL_API_KEY']}"
+    "Authorization": f"Bearer {env['CHATGPT_API_KEY']}"
 }
 
 MCP_HEADERS = {
@@ -23,9 +22,9 @@ MCP_HEADERS = {
 }
 
 
-def createSystemPrompt(username: str, model: str = "mistral") -> str:
+def createSystemPrompt(username: str, model: str = "OpenAI") -> str:
     """
-    Create a system prompt for the Mistral API.
+    Create a system prompt for the OpenAI API.
     """
     return f"""
     You are the best AI assistant for entreprises in the world called '{model}'.
@@ -44,17 +43,18 @@ def createSystemPrompt(username: str, model: str = "mistral") -> str:
     """
 
 
-async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessage], model: MistralModel, temperature: float, max_tokens: int):
-    history: list[MistralUserMessage | MistralAssistantMessage | MistralToolMessage] = conv_history.copy()
+async def sendChat(conv_history: list[OpenAIUserMessage | OpenAIAssistantMessage], model: OpenAIModel, temperature: float, max_tokens: int):
+    history: list[OpenAIUserMessage | OpenAIAssistantMessage | OpenAIToolMessage] = conv_history.copy()
 
     async with httpx.AsyncClient() as client:
         while True:
             print("Starting new chat loop", flush=True)
             buffer = ""
-            tool_calls: list[MistralToolCallRequest] = []
+            tool_calls: dict[str, OpenAIToolCallRequest] = {}  # Store tool calls to handle them after the response
             usingTool = False
+            actual_tool_id = None
 
-            prompt = MistralRequestAPI(
+            prompt = OpenAIRequestAPI(
                 model=model,
                 messages=history,
                 temperature=temperature,
@@ -65,10 +65,10 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
                 tool_choice="auto",
             ).model_dump(mode="json")
 
-            print(f"Sending prompt to Mistral API: {prompt}")
+            print(f"Sending prompt to OpenAI API: {prompt}", flush=True)
 
-            async with client.stream(method="POST", url=config.mistral_api_url,
-                                     headers=MISTRAL_HEADERS, json=prompt) as response:
+            async with client.stream(method="POST", url=config.openai_api_url,
+                                     headers=OPENAI_HEADERS, json=prompt) as response:
                 if response.status_code == 200:
                     async for chunk in response.aiter_bytes():
                         if not chunk:
@@ -95,39 +95,47 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
                                     print("Chunk:", data, flush=True)
                                     delta = choice.get("delta", {})
 
-                                    if "content" in delta:
+                                    if "content" in delta and delta["content"] != None:
                                         yield delta["content"]
 
                                     if "tool_calls" in delta:
+                                        # OpenAI streams tool_calls in chunks, sometimes splitting arguments
                                         for tool in delta["tool_calls"]:
-                                            tool_id = tool.get("id")
+                                            tool_id = tool.get("id", None)
                                             index = tool.get("index", 0)
-                                            name = tool["function"]["name"]
-                                            args = tool["function"]["arguments"]
+                                            name = tool["function"].get("name")
+                                            args = tool["function"].get("arguments", "")
 
-                                            tool_calls.append(
-                                                MistralToolCallRequest(
+                                            print(f"Processing tool call: id={tool_id}, index={index}, name={name}, args={args}", flush=True)
+
+                                            if tool_id is None:
+                                                if tool_calls.get(actual_tool_id) is None:
+                                                    raise ValueError("Tool call without ID found in response.")
+                                                tool_calls.get(actual_tool_id).function.arguments += args
+                                            else:
+                                                tool_call = OpenAIToolCallRequest(
                                                     id=tool_id,
                                                     index=index,
-                                                    function=MistralToolFunctionRequest(
+                                                    function=OpenAIToolFunctionRequest(
                                                         name=name,
                                                         arguments=args
                                                     )
                                                 )
-                                            )
+                                                tool_calls[tool_id] = tool_call
+                                                actual_tool_id = tool_id
 
                                 if choice.get("finish_reason") == "tool_calls":
                                     print("Tool calls detected in response, processing...")
                                     usingTool = True
 
                                     history.append(
-                                        MistralAssistantMessage(
+                                        OpenAIAssistantMessage(
                                             role="assistant",
-                                            tool_calls=tool_calls
+                                            tool_calls=tool_calls.values()
                                         ).model_dump(mode="json")
                                     )
 
-                                    for tool_request in tool_calls:
+                                    for tool_request in tool_calls.values():
                                         response = await callTool(
                                             call_function_id=tool_request.id,
                                             tool_name=tool_request.function.name,
@@ -136,7 +144,7 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
 
                                         # Ensure response is a dict before accessing "result"
                                         result_content = response["result"] if isinstance(response, dict) and "result" in response else str(response)
-                                        history.append(MistralToolMessage(
+                                        history.append(OpenAIToolMessage(
                                             role="tool",
                                             name=tool_request.function.name,
                                             content=result_content,
@@ -148,7 +156,7 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
                             except json.JSONDecodeError:
                                 continue
                 else:
-                    print(f"Error: {response.status_code} - {await response.aread()}")
+                    print(f"Error: {response.status_code} - {await response.aread()}", flush=True)
                     response.raise_for_status()
 
             print("end of loop", usingTool, flush=True)
@@ -233,31 +241,3 @@ async def getTools() -> list[dict]:
         except Exception as e:
             print(f"An unexpected error occurred while fetching tools: {e}")
             return []
-    # return [
-    #     {
-    #         "type": "function",
-    #         "function": {
-    #             "name": "getEnterpriseData",
-    #             "description": "Get the enterprise data",
-    #             "parameters": {
-    #                 "type": "object",
-    #                 "properties": {
-    #                     "enterprise_name": {
-    #                         "type": "string",
-    #                         "description": "The name of the enterprise"
-    #                     },
-    #                     "enterprise_description": {
-    #                         "type": "string",
-    #                         "description": "The description of the enterprise"
-    #                     }
-    #                 },
-    #                 "required": ["enterprise_name", "enterprise_description"]
-    #             }
-    #         }
-    #     }
-    # ]
-    # async with httpx.get(url=f"{config.mistral_api_url}/tools", headers=headers) as response:
-    #     if response.status_code == 200:
-    #         return response.json()
-    #     else:
-    #         response.raise_for_status()

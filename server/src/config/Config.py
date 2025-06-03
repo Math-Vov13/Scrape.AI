@@ -32,6 +32,7 @@ class Config:
     log_level: str = "INFO"
     
     # Mistral
+    openai_api_url: str = "https://api.openai.com/v1/chat/completions"
     mistral_api_url: str = "https://api.mistral.ai/v1/chat/completions"
 
 config = Config()

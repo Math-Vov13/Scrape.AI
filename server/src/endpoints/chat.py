@@ -4,15 +4,13 @@ from fastapi import APIRouter, Body, Depends, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from src.endpoints.token import get_current_user
 from src.schema.users_sc import UserBase
-from src.utils.chat_mistral import sendChat, createSystemPrompt
-from src.schema.mistral_sc import *
+from src.utils.chat_openai import sendChat, createSystemPrompt
+from src.schema.openai_sc import *
 
 router = APIRouter()
 
 @router.post("/completion")
-async def chat(current_user: Annotated[UserBase, Depends(get_current_user)], prompt: MistralRequest = Body(...)):
-
-    print("Welcome user:", current_user.username)
+async def chat(current_user: Annotated[UserBase, Depends(get_current_user)], prompt: OpenAIRequest = Body(...)):
     
     if prompt.temperature < 0 or prompt.temperature > 1:
         return JSONResponse(
@@ -33,7 +31,7 @@ async def chat(current_user: Annotated[UserBase, Depends(get_current_user)], pro
         )
     
     if prompt.messages[0].role != "system":
-        prompt.messages.insert(0, MistralUserMessage(
+        prompt.messages.insert(0, OpenAIUserMessage(
             role="system",
             content= createSystemPrompt(current_user.username, model=prompt.model)
         ))
@@ -47,7 +45,7 @@ async def chat(current_user: Annotated[UserBase, Depends(get_current_user)], pro
                     params = chunk.split("parameters:", 1)[1].split("\n", 1)[0]
                     print("tool name streaming:", name, flush=True)
                     print("tool params streaming:", params, flush=True)
-                    yield f"tool: {json.dumps({"name": name, "params": params, "timestamp": time.time()})}<||CHUNK||>"
+                    yield f"tool: {json.dumps({"name": name, "params": params.strip(), "timestamp": time.time()})}<||CHUNK||>"
                     continue
                 yield f"data: {chunk}<||CHUNK||>"
         except Exception as e:
