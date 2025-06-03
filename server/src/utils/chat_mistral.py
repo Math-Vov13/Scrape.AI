@@ -162,7 +162,7 @@ async def sendChat(conv_history: list[MistralUserMessage | MistralAssistantMessa
 ### --- TOOLS --- ###
 
 @alru_cache(maxsize=128)
-async def callTool(call_function_id: str, tool_name: str, arguments: str) -> str:
+async def callTool(call_function_id: str, tool_name: str, arguments: str) -> dict:
     """
     Fetch data from the MCP Server using a tool call.
     """
@@ -185,21 +185,31 @@ async def callTool(call_function_id: str, tool_name: str, arguments: str) -> str
                 json=req_body
             )
             if response.status_code == 200:
-                response = response.json()
+                response_data = response.json()
+                print(f"Tool Call Response: {response_data}")
+                return response_data
             else:
                 print(f"Error calling tool '{tool_name}' ({response.status_code}): {response.text}")
-                response = "Error calling tool {status: %d, response: %s}" % (response.status_code, response.text)
+                error_msg = f"Error calling tool {tool_name} (status: {response.status_code}, response: {response.text})"
+                return {"result": error_msg, "error": error_msg}
     except httpx.RequestError as e:
         print(f"Request error while calling tool '{tool_name}': {e}")
-        response = f"Request error: {str(e)}"
+        print(f"Request error type: {type(e)}")
+        import traceback
+        traceback.print_exc()
+        error_msg = f"Request error: {str(e)}"
+        return {"result": error_msg, "error": error_msg}
     except httpx.TimeoutException:
         print(f"Timeout error while calling tool '{tool_name}'")
-        response = "Timeout error while calling tool"
-    except:
-        response = "An unexpected error occurred while calling the tool [Internal Server Error]"
-
-    print(f"Tool Call Response: {response}")
-    return response
+        error_msg = "Timeout error while calling tool"
+        return {"result": error_msg, "error": error_msg}
+    except Exception as e:
+        print(f"Unexpected error while calling tool '{tool_name}': {e}")
+        print(f"Unexpected error type: {type(e)}")
+        import traceback
+        traceback.print_exc()
+        error_msg = f"An unexpected error occurred while calling the tool: {str(e)}"
+        return {"result": error_msg, "error": error_msg}
 
 
 @alru_cache(maxsize=128)

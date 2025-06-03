@@ -6,7 +6,7 @@ class RPCRequest(BaseModel):
     jsonrpc: str = "2.0"
     id: Optional[str] = None
     method: str = ""
-    params: Dict[str, Any] = None
+    params: Optional[Dict[str, Any]] = None
 
 
 class RPCResponse(BaseModel):

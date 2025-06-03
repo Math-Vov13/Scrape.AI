@@ -31,7 +31,31 @@ async def get_tools():
                     "required": ["enterprise_name", "enterprise_description"]
                 }
             }
+        },
+        {"type": "function",
+            "function": {
+                "name": "getBestMatchingFileByKeyword",
+                "description": "Retrieve the best matching file by searching through a company's files with a keyword",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "searching_word": {
+                            "type": "string",
+                            "description": "The word the user is trying to find in the files"
+                        },
+                        "similar_words": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Give 5 words that are similar to the searched word and can be used instead of it"
+                        }
+                    },
+                    "required": ["searching_word", "similar_words"]
+                }
+            }
         }
+
             # {
             #     "name": "ScrapeAI",
             #     "description": "A tool for scraping data from websites.",

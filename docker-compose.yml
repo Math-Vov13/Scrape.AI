@@ -12,7 +12,7 @@ services:
 
     networks:
       - app-network
-    
+
   mcp:
     build:
       context: ./mcp-server
@@ -23,7 +23,8 @@ services:
       - NODE_ENV=production
     env_file:
       - ./mcp-server/.env
-
+    volumes:
+      - ./me:/code/me
     networks:
       - app-network
   
@@ -54,3 +55,4 @@ networks:
 volumes:
   mongo-data:
     driver: local
+
