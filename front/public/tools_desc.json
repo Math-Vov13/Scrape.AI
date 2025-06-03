@@ -1,0 +1,9 @@
+{
+    "getEnterpriseData": {
+        "name": "getEnterpriseData",
+        "description": "Retrieves enterprise data from the specified source.",
+        "permissions": [
+            "read:enterprise_data"
+        ]
+    }
+}

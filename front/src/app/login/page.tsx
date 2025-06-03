@@ -202,12 +202,12 @@ export default function LoginPage() {
         {/* Sign up link */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            Pas encore de compte ?{" "}
+            Envie de nous rejoindre ?{" "}
             <Link
-              href="/signup"
+              href="/pricing"
               className="font-medium text-primary hover:text-primary/80 transition-colors"
             >
-              Créer un compte
+              Ajoutez votre entreprise
             </Link>
           </p>
         </div>

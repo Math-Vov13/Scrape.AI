@@ -138,7 +138,8 @@ export async function POST(request: NextRequest) {
             if (dataType === 'data' || dataType === 'tool') {
               // Handle regular data messages
               if (dataType === 'tool') {
-                data = '<||TOOL||>' + data + '<||END_TOOL||>';
+                console.log('Tool message received:', data);
+                data = '<||TOOL||>' + data.trim() + '<||END_TOOL||>';
               }
               try {
                 await writer.write(encoder.encode(data));
