@@ -138,7 +138,6 @@ export async function POST(request: NextRequest) {
             if (dataType === 'data' || dataType === 'tool') {
               // Handle regular data messages
               if (dataType === 'tool') {
-                console.log('Tool message received:', data);
                 data = '<||TOOL||>' + data.trim() + '<||END_TOOL||>';
               }
               try {

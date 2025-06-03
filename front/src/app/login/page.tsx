@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import Link from "next/link";
 
 export default function LoginPage() {
-  const { user, login, logout } = useAuth();
+  const { user, login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -65,6 +65,17 @@ export default function LoginPage() {
             <p className="text-muted-foreground">
               Connectez-vous à votre compte
             </p>
+            {user && (
+              <p className="text-sm">
+                Revenir au {" "}
+                <Link
+                  href="/chat"
+                  className="font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  Chat
+                </Link>
+              </p>
+            )}
           </div>
         </div>
 

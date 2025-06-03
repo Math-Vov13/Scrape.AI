@@ -2,9 +2,8 @@
 
 import ReactMarkdown from 'react-markdown';
 import { useState, useRef, useEffect } from "react";
-import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown, RefreshCw, Copy, Plus, Send, Star, Settings, Clock, ChevronDown, ChevronUp, Bot, User } from "lucide-react";
+import { Plus, Send, Star, Settings, Clock, ChevronDown, ChevronUp, Bot, User } from "lucide-react";
 import { useAuth } from '../../context/AuthContext';
 import ProtectedRoute from '../../components/ProtectedRoute';
 
@@ -27,10 +26,11 @@ interface Message {
   toolCalls?: ToolCalled[]; // List of tool calls made in the message, if any
 
   // Writting metadata
-  timeTaken?: number;     // Time taken to generate the message in milliseconds
-  error?: boolean;        // Error message if any
-  isStreaming?: boolean;  // True if the message is currently being streamed
-  isWaiting?: boolean;    // True if the AI is still processing the message
+  timeFirstToken?: number; // First token of the message, if available
+  timeTaken?: number;      // Time taken to generate the message in milliseconds
+  error?: boolean;         // Error message if any
+  isStreaming?: boolean;   // True if the message is currently being streamed
+  isWaiting?: boolean;     // True if the AI is still processing the message
 }
 
 type ChatHistory = {
@@ -179,13 +179,13 @@ export default function Home() {
     setIsWaitingResponse(true);
     // Create placeholder AI message for streaming
     const new_MessageId = (Date.now() + 1).toString();
-    const act_time = new Date();
+
 
     setMessages(prev => [...prev, {
       id: new_MessageId,
       content: "",
       isUser: false,
-      timestamp: act_time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isStreaming: false, // Initially not streaming
       error: false, // No error initially
       isWaiting: true, // Flag to show waiting indicator
@@ -193,11 +193,13 @@ export default function Home() {
 
     // Call ChatBot streaming API
     (async () => {
+      const act_time = new Date(); // Record the time when the API call starts
       const api_response = await sendPrompt(prompt, new_MessageId);
       let messageContent = "";
+
       if (!api_response || typeof api_response !== 'object') {
         setMessages(prev => prev.map(msg => msg.id === new_MessageId
-          ? { ...msg, timeTaken: 0, error: true, isWaiting: false, isStreaming: false, content: api_response || 'We\'re Sorry, an unexpected error happend in background!' }
+          ? { ...msg, timeTaken: 0, error: true, isWaiting: false, isStreaming: false, content: api_response || 'Error: We\'re Sorry, an unexpected error happend in background!' }
           : msg
         ));
         setIsWaitingResponse(false);
@@ -235,10 +237,12 @@ export default function Home() {
                 ));
                 continue; // Skip appending text to content
               }
+
               setMessages(prev => prev.map(msg =>
                 msg.id === new_MessageId
                   ? {
                     ...msg,
+                    timeFirstToken: msg.timeFirstToken !== undefined ? msg.timeFirstToken : new Date().getTime() - act_time.getTime(),
                     content: msg.content + text,
                     isWaiting: false // Remove waiting indicator once streaming starts
                   }
@@ -249,12 +253,11 @@ export default function Home() {
           }
         }
 
-        console.log(`Reponse du stream : '${messages.find(msg => msg.id === new_MessageId)?.content}'`);
         if (messageContent === undefined || messageContent.trim() === "") {
           // If no content was received, set an error message
           setMessages(prev => prev.map(msg =>
             msg.id === new_MessageId
-              ? { ...msg, timeTaken: 0, error: true, isWaiting: false, isStreaming: false, content: 'We\'re Sorry, an unexpected error happend: No Response' }
+              ? { ...msg, timeTaken: 0, error: true, isWaiting: false, isStreaming: false, content: 'Error: We\'re sorry, AI did not give an answer...' }
               : msg
           ));
           return;
@@ -268,7 +271,7 @@ export default function Home() {
         ));
       } catch (err) {
         console.error(err);
-        setMessages(prev => prev.map(msg => msg.id === new_MessageId ? { ...msg, timeTaken: new Date().getTime() - act_time.getTime(), error: true, isWaiting: false, isStreaming: false, content: 'We\'re Sorry, an unexpected error happend in background!' } : msg));
+        setMessages(prev => prev.map(msg => msg.id === new_MessageId ? { ...msg, timeTaken: new Date().getTime() - act_time.getTime(), error: true, isWaiting: false, isStreaming: false, content: 'Error: We\'re Sorry, an unexpected error happend in background!' } : msg));
       } finally {
         setIsWaitingResponse(false);
       }
@@ -290,21 +293,30 @@ export default function Home() {
           </div>
 
           <div className="ml-auto flex items-center space-x-2">
+            Connected as <span className="font-semibold text-orange-500 ml-1">"{user?.full_name}"</span>{ "   " }
             <Button
               variant="outline"
               size="sm"
               asChild
             >
               <a href="/login">
-                Connexion
+                Logout
               </a>
             </Button>
-            <button
-              className="p-2 hover:bg-secondary rounded-full"
-              onClick={() => window.location.href = '/admin'}
-            >
+            { user?.admin && (
+              <>
               <Settings className="h-5 w-5" />
-            </button>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+              >
+                <a href="/admin">
+                  Go to Admin Panel
+                </a>
+              </Button>
+              </>
+            )}
           </div>
         </header>
 
@@ -374,7 +386,7 @@ export default function Home() {
                                       </div>
                                     )}
                                     <div>
-                                      <span className="font-semibold text-orange-400">Paramètres :</span>
+                                      <span className="font-semibold text-orange-400">Parameters :</span>
                                       <pre className="bg-black/60 rounded p-2 mt-1 overflow-x-auto text-gray-300 border border-orange-500/20">
                                         {JSON.stringify(tool.params, null, 2)}
                                       </pre>
@@ -434,6 +446,12 @@ export default function Home() {
                       <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full border border-orange-500/20">
                         {message.timestamp}
                       </span>
+                      {!message.isUser && typeof message.timeFirstToken === 'number' && (
+                        <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 border border-orange-500/20">
+                          <Clock className="w-3 h-3 text-orange-400" />
+                          <span className="text-orange-100">{(message.timeFirstToken / 1000).toFixed(3)}s</span>
+                        </span>
+                      )}
                       {!message.isUser && typeof message.timeTaken === 'number' && !message.isStreaming && (
                         <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 border border-orange-500/20">
                           <Clock className="w-3 h-3 text-orange-400" />
@@ -457,7 +475,7 @@ export default function Home() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && e.shiftKey && (e.preventDefault(), handleSendMessage())}
-              placeholder="Posez une question..."
+              placeholder="Ask a question..."
               className="chat-input resize-none"
               onInput={(e) => {
                 const ta = e.currentTarget;
