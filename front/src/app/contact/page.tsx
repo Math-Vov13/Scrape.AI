@@ -40,40 +40,40 @@ const ContactPage: React.FC = () => {
     {
       icon: '📧',
       title: 'Email',
-      description: 'Contactez-nous par email pour toute question',
+      description: 'Reach out to us via email for any questions',
       value: 'contact@scrapeai.com',
       action: 'mailto:contact@scrapeai.com'
     },
     {
       icon: '📞',
-      title: 'Téléphone',
-      description: 'Appelez-nous du lundi au vendredi de 9h à 18h',
+      title: 'Phone',
+      description: 'Call us Monday to Friday from 9am to 6pm',
       value: '+33 1 23 45 67 89',
       action: 'tel:+33123456789'
     },
     {
       icon: '💬',
-      title: 'Chat en direct',
-      description: 'Discutez avec notre équipe support en temps réel',
-      value: 'Chat disponible 24/7',
+      title: 'Live Chat',
+      description: 'Chat with our support team in real time',
+      value: 'Chat available 24/7',
       action: '#'
     },
     {
       icon: '📍',
-      title: 'Adresse',
-      description: 'Rendez-nous visite dans nos bureaux',
+      title: 'Address',
+      description: 'Visit our office',
       value: '123 Rue de la Tech, 75001 Paris',
       action: 'https://maps.google.com'
     }
   ];
 
   const interestOptions = [
-    'Abonnement SaaS',
-    'Services d\'intégration',
-    'Services professionnels',
-    'Démonstration produit',
-    'Partenariat',
-    'Support technique'
+    'SaaS Subscription',
+    'Integration Services',
+    'Professional Services',
+    'Product Demo',
+    'Partnership',
+    'Technical Support'
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -96,10 +96,10 @@ const ContactPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulation d'envoi du formulaire
+
+    // Simulate form submission
     setTimeout(() => {
-      setSubmitMessage('Merci pour votre message ! Nous vous recontacterons sous 24h.');
+      setSubmitMessage('Thank you for your message! We will get back to you within 24 hours.');
       setIsSubmitting(false);
       setFormData({
         firstName: '',
@@ -118,11 +118,14 @@ const ContactPage: React.FC = () => {
     <>
       <Head>
         <title>Contact - ScrapeAI</title>
-        <meta name="description" content="Contactez l'équipe ScrapeAI pour toute question sur nos solutions de partage de ressources avec chatbot interactif." />
+        <meta
+          name="description"
+          content="Get in touch with the ScrapeAI team for any questions about our resource-sharing solutions with an interactive chatbot."
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen bg-black">
         {/* Header */}
         <header className="bg-black text-white py-8">
           <div className="container mx-auto px-6">
@@ -131,12 +134,12 @@ const ContactPage: React.FC = () => {
                 <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center font-bold text-xl">
                   S
                 </div>
-                <span className="text-2xl font-bold">ScrapeAI</span>
+                <span className="text-2xl font-bold text-white">ScrapeAI</span>
               </div>
               <nav className="hidden md:flex space-x-8">
-                <a href="/" className="hover:text-orange-400 transition-colors">Accueil</a>
-                <a href="/" className="hover:text-orange-400 transition-colors">Fonctionnalités</a>
-                <a href="/pricing" className="hover:text-orange-400 transition-colors">Tarification</a>
+                <a href="/" className="hover:text-orange-400 text-gray-300 transition-colors">Home</a>
+                <a href="/" className="hover:text-orange-400 text-gray-300 transition-colors">Features</a>
+                <a href="/pricing" className="hover:text-orange-400 text-gray-300 transition-colors">Pricing</a>
                 <a href="#" className="text-orange-400">Contact</a>
               </nav>
             </div>
@@ -144,33 +147,35 @@ const ContactPage: React.FC = () => {
         </header>
 
         {/* Hero Section */}
-        <section className="py-16 bg-white">
+        <section className="py-16 bg-black">
           <div className="container mx-auto px-6 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Contactez <span className="text-orange-500">notre équipe</span>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Get in Touch with <span className="text-orange-500">Our Team</span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Nous sommes là pour répondre à vos questions et vous accompagner dans l'optimisation 
-              du partage de ressources de votre entreprise.
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+              We’re here to answer your questions and help you optimize your company’s resource sharing.
             </p>
           </div>
         </section>
 
         {/* Contact Methods */}
-        <section className="py-16 bg-gray-50">
+        <section className="py-16 bg-black">
           <div className="container mx-auto px-6">
-            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              Plusieurs façons de nous <span className="text-orange-500">contacter</span>
+            <h2 className="text-3xl font-bold text-center text-white mb-12">
+              Multiple Ways to <span className="text-orange-500">Contact Us</span>
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {contactMethods.map((method, index) => (
-                <div key={index} className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-orange-500 group">
+                <div
+                  key={index}
+                  className="bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-orange-500 group"
+                >
                   <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
                     {method.icon}
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{method.title}</h3>
-                  <p className="text-gray-600 mb-4 text-sm">{method.description}</p>
-                  <a 
+                  <h3 className="text-xl font-bold text-white mb-2">{method.title}</h3>
+                  <p className="text-gray-300 mb-4 text-sm">{method.description}</p>
+                  <a
                     href={method.action}
                     className="text-orange-600 font-semibold hover:text-orange-700 transition-colors"
                   >
@@ -183,15 +188,15 @@ const ContactPage: React.FC = () => {
         </section>
 
         {/* Contact Form */}
-        <section className="py-16 bg-white">
+        <section className="py-16 bg-black">
           <div className="container mx-auto px-6">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  Envoyez-nous un <span className="text-orange-500">message</span>
+                <h2 className="text-3xl font-bold text-white mb-4">
+                  Send Us a <span className="text-orange-500">Message</span>
                 </h2>
-                <p className="text-gray-600">
-                  Remplissez le formulaire ci-dessous et nous vous répondrons rapidement.
+                <p className="text-gray-300">
+                  Fill out the form below and we will respond quickly.
                 </p>
               </div>
 
@@ -201,11 +206,14 @@ const ContactPage: React.FC = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+              <form
+                onSubmit={handleSubmit}
+                className="bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700"
+              >
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div>
-                    <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Prénom *
+                    <label htmlFor="firstName" className="block text-sm font-semibold text-gray-300 mb-2">
+                      First Name *
                     </label>
                     <input
                       type="text"
@@ -214,13 +222,13 @@ const ContactPage: React.FC = () => {
                       value={formData.firstName}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Votre prénom"
+                      className="w-full px-4 py-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      placeholder="Your first name"
                     />
                   </div>
                   <div>
-                    <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Nom *
+                    <label htmlFor="lastName" className="block text-sm font-semibold text-gray-300 mb-2">
+                      Last Name *
                     </label>
                     <input
                       type="text"
@@ -229,16 +237,16 @@ const ContactPage: React.FC = () => {
                       value={formData.lastName}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Votre nom"
+                      className="w-full px-4 py-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      placeholder="Your last name"
                     />
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div>
-                    <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Email professionnel *
+                    <label htmlFor="email" className="block text-sm font-semibold text-gray-300 mb-2">
+                      Work Email *
                     </label>
                     <input
                       type="email"
@@ -247,13 +255,13 @@ const ContactPage: React.FC = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="votre@entreprise.com"
+                      className="w-full px-4 py-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      placeholder="your@company.com"
                     />
                   </div>
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Téléphone
+                    <label htmlFor="phone" className="block text-sm font-semibold text-gray-300 mb-2">
+                      Phone
                     </label>
                     <input
                       type="tel"
@@ -261,7 +269,7 @@ const ContactPage: React.FC = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                       placeholder="+33 1 23 45 67 89"
                     />
                   </div>
@@ -269,8 +277,8 @@ const ContactPage: React.FC = () => {
 
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div>
-                    <label htmlFor="company" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Entreprise *
+                    <label htmlFor="company" className="block text-sm font-semibold text-gray-300 mb-2">
+                      Company *
                     </label>
                     <input
                       type="text"
@@ -279,13 +287,13 @@ const ContactPage: React.FC = () => {
                       value={formData.company}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Nom de votre entreprise"
+                      className="w-full px-4 py-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      placeholder="Your company name"
                     />
                   </div>
                   <div>
-                    <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Sujet *
+                    <label htmlFor="subject" className="block text-sm font-semibold text-gray-300 mb-2">
+                      Subject *
                     </label>
                     <select
                       id="subject"
@@ -293,22 +301,22 @@ const ContactPage: React.FC = () => {
                       value={formData.subject}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                     >
-                      <option value="">Sélectionnez un sujet</option>
-                      <option value="demo">Demande de démonstration</option>
-                      <option value="pricing">Question sur les tarifs</option>
-                      <option value="integration">Services d'intégration</option>
-                      <option value="support">Support technique</option>
-                      <option value="partnership">Partenariat</option>
-                      <option value="other">Autre</option>
+                      <option value="">Select a subject</option>
+                      <option value="demo">Product Demo Request</option>
+                      <option value="pricing">Pricing Inquiry</option>
+                      <option value="integration">Integration Services</option>
+                      <option value="support">Technical Support</option>
+                      <option value="partnership">Partnership</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Centres d'intérêt (optionnel)
+                  <label className="block text-sm font-semibold text-gray-300 mb-3">
+                    Interests (optional)
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {interestOptions.map((interest, index) => (
@@ -317,16 +325,16 @@ const ContactPage: React.FC = () => {
                           type="checkbox"
                           checked={formData.interests.includes(interest)}
                           onChange={() => handleInterestChange(interest)}
-                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                          className="w-4 h-4 text-orange-500 bg-gray-900 border-gray-600 rounded focus:ring-orange-500"
                         />
-                        <span className="text-sm text-gray-700">{interest}</span>
+                        <span className="text-sm text-gray-300">{interest}</span>
                       </label>
                     ))}
                   </div>
                 </div>
 
                 <div className="mb-8">
-                  <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="message" className="block text-sm font-semibold text-gray-300 mb-2">
                     Message *
                   </label>
                   <textarea
@@ -336,8 +344,8 @@ const ContactPage: React.FC = () => {
                     onChange={handleInputChange}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none"
-                    placeholder="Décrivez votre projet ou vos besoins en détail..."
+                    className="w-full px-4 py-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none"
+                    placeholder="Describe your project or needs in detail..."
                   />
                 </div>
 
@@ -354,10 +362,10 @@ const ContactPage: React.FC = () => {
                     {isSubmitting ? (
                       <div className="flex items-center space-x-2">
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Envoi en cours...</span>
+                        <span>Sending...</span>
                       </div>
                     ) : (
-                      'Envoyer le message'
+                      'Send Message'
                     )}
                   </button>
                 </div>
@@ -367,37 +375,35 @@ const ContactPage: React.FC = () => {
         </section>
 
         {/* FAQ Section */}
-        <section className="py-16 bg-gray-50">
+        <section className="py-16 bg-black">
           <div className="container mx-auto px-6">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-                Questions <span className="text-orange-500">fréquentes</span>
+              <h2 className="text-3xl font-bold text-center text-white mb-12">
+                Frequently Asked <span className="text-orange-500">Questions</span>
               </h2>
               <div className="space-y-6">
-                <div className="bg-white rounded-lg p-6 shadow-md">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Combien de temps faut-il pour intégrer ScrapeAI ?
+                <div className="bg-gray-800 rounded-lg p-6 shadow-md">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    How long does it take to integrate ScrapeAI?
                   </h3>
-                  <p className="text-gray-600">
-                    L'intégration standard prend généralement entre 2 à 4 semaines selon la complexité de votre infrastructure. 
-                    Nos services d'intégration professionnels peuvent accélérer ce processus.
+                  <p className="text-gray-300">
+                    Standard integration usually takes between 2 to 4 weeks depending on your infrastructure’s complexity. Our professional integration services can expedite this process.
                   </p>
                 </div>
-                <div className="bg-white rounded-lg p-6 shadow-md">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Proposez-vous un essai gratuit ?
+                <div className="bg-gray-800 rounded-lg p-6 shadow-md">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Do you offer a free trial?
                   </h3>
-                  <p className="text-gray-600">
-                    Oui, nous offrons un essai gratuit de 14 jours pour tous nos plans. Aucune carte de crédit n'est requise.
+                  <p className="text-gray-300">
+                    Yes, we offer a 14-day free trial for all plans. No credit card is required.
                   </p>
                 </div>
-                <div className="bg-white rounded-lg p-6 shadow-md">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Quel type de support proposez-vous ?
+                <div className="bg-gray-800 rounded-lg p-6 shadow-md">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    What type of support do you offer?
                   </h3>
-                  <p className="text-gray-600">
-                    Nous proposons un support par email pour tous les plans, un support prioritaire pour Premium, 
-                    et un support dédié 24/7 pour Enterprise.
+                  <p className="text-gray-300">
+                    We provide email support for all plans, priority support for Premium, and dedicated 24/7 support for Enterprise.
                   </p>
                 </div>
               </div>
@@ -409,13 +415,13 @@ const ContactPage: React.FC = () => {
         <section className="py-16 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-3xl font-bold mb-4">
-              Vous préférez discuter directement ?
+              Prefer to Chat Directly?
             </h2>
             <p className="text-xl mb-8 opacity-90">
-              Planifiez un appel avec notre équipe pour découvrir comment ScrapeAI peut transformer votre entreprise.
+              Schedule a call with our team to see how ScrapeAI can transform your business.
             </p>
             <button className="bg-white text-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-              Planifier un appel
+              Schedule a Call
             </button>
           </div>
         </section>
@@ -432,36 +438,36 @@ const ContactPage: React.FC = () => {
                   <span className="text-xl font-bold">ScrapeAI</span>
                 </div>
                 <p className="text-gray-400">
-                  La solution intelligente pour optimiser le partage de ressources en entreprise.
+                  The intelligent solution to optimize resource sharing in your company.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold mb-4">Produit</h4>
+                <h4 className="font-semibold mb-4 text-white">Product</h4>
                 <ul className="space-y-2 text-gray-400">
-                  <li><a href="#" className="hover:text-white transition-colors">Fonctionnalités</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Intégrations</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
                   <li><a href="#" className="hover:text-white transition-colors">API</a></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold mb-4">Support</h4>
+                <h4 className="font-semibold mb-4 text-white">Support</h4>
                 <ul className="space-y-2 text-gray-400">
                   <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Formation</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Training</a></li>
                   <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold mb-4">Entreprise</h4>
+                <h4 className="font-semibold mb-4 text-white">Company</h4>
                 <ul className="space-y-2 text-gray-400">
-                  <li><a href="#" className="hover:text-white transition-colors">À propos</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Carrières</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Partenaires</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Partners</a></li>
                 </ul>
               </div>
             </div>
             <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-              <p>&copy; 2025 ScrapeAI. Tous droits réservés.</p>
+              <p>&copy; 2025 ScrapeAI. All rights reserved.</p>
             </div>
           </div>
         </footer>

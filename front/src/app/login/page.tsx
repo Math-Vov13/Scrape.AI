@@ -21,7 +21,7 @@ export default function LoginPage() {
     setEmail(email.trim());
     setPassword(password.trim());
     if (!email || !password) {
-      alert("Veuillez remplir tous les champs.");
+      alert("Please fill out all fields.");
       setIsLoading(false);
       return;
     }
@@ -35,15 +35,14 @@ export default function LoginPage() {
       window.location.href = "/chat";
     } else {
       // Handle login failure
-      alert("Échec de la connexion. Veuillez vérifier vos identifiants.");
+      alert("Login failed. Please check your credentials.");
       setPassword("");
     }
-
   };
 
   // useEffect(() => {
   //   if (user) {
-  //     // Redirect to dashboard if user is already logged in
+  //     // Redirect to chat if user is already logged in
   //     window.location.href = "/chat";
   //   }
   // }, [user]);
@@ -60,14 +59,14 @@ export default function LoginPage() {
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">
-              Connexion
+              Login
             </h1>
             <p className="text-muted-foreground">
-              Connectez-vous à votre compte
+              Log in to your account
             </p>
             {user && (
               <p className="text-sm">
-                Revenir au {" "}
+                Back to{" "}
                 <Link
                   href="/chat"
                   className="font-medium text-primary hover:text-primary/80 transition-colors"
@@ -85,14 +84,14 @@ export default function LoginPage() {
             {/* Email Field */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-foreground">
-                Adresse email
+                Email Address
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="votre.email@exemple.com"
+                  placeholder="your.email@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
@@ -104,14 +103,14 @@ export default function LoginPage() {
             {/* Password Field */}
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium text-foreground">
-                Mot de passe
+                Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Votre mot de passe"
+                  placeholder="Your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10"
@@ -140,14 +139,14 @@ export default function LoginPage() {
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <label htmlFor="remember" className="text-sm text-muted-foreground">
-                  Se souvenir de moi
+                  Remember me
                 </label>
               </div>
               <Link
                 href="/forgot-password"
                 className="text-sm text-primary hover:text-primary/80 transition-colors"
               >
-                Mot de passe oublié ?
+                Forgot password?
               </Link>
             </div>
 
@@ -160,10 +159,10 @@ export default function LoginPage() {
               {isLoading ? (
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  <span>Connexion en cours...</span>
+                  <span>Logging in...</span>
                 </div>
               ) : (
-                "Se connecter"
+                "Log In"
               )}
             </Button>
           </form>
@@ -174,7 +173,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Ou continuer avec</span>
+              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
             </div>
           </div>
 
@@ -213,12 +212,12 @@ export default function LoginPage() {
         {/* Sign up link */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            Envie de nous rejoindre ?{" "}
+            Want to join us?{" "}
             <Link
               href="/pricing"
               className="font-medium text-primary hover:text-primary/80 transition-colors"
             >
-              Ajoutez votre entreprise
+              Add your company
             </Link>
           </p>
         </div>
