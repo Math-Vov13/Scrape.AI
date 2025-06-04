@@ -3,7 +3,7 @@
 import ReactMarkdown from 'react-markdown';
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Send, Star, Settings, Clock, ChevronDown, ChevronUp, Bot, User } from "lucide-react";
+import { Plus, Wrench, Send, Star, Settings, Clock, ChevronDown, ChevronUp, Bot, User } from "lucide-react";
 import { useAuth } from '../../context/AuthContext';
 import ProtectedRoute from '../../components/ProtectedRoute';
 
@@ -12,6 +12,7 @@ type ToolCalled = {
   name: string;           // Name of the tool called
   description: string;    // Description of what the tool does
   params: Record<string, any>; // Parameters passed to the tool
+  timestamp: string;      // Timestamp of when the tool was called, formatted as "HH:MM"
 }
 
 interface Message {
@@ -72,7 +73,7 @@ export default function Home() {
     setMessages([
       {
         id: "1",
-        content: `Bonjour **${user?.full_name}**` + startConversation[Math.floor(Math.random() * startConversation.length)],
+        content: `Good day **${user?.full_name}**` + startConversation[Math.floor(Math.random() * startConversation.length)],
         isUser: false,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
@@ -230,8 +231,7 @@ export default function Home() {
                   msg.id === new_MessageId
                     ? {
                       ...msg,
-                      toolCalls: msg.toolCalls ? [...msg.toolCalls, toolCall] : [toolCall],
-                      isWaiting: false // Remove waiting indicator once streaming starts
+                      toolCalls: msg.toolCalls ? [...msg.toolCalls, toolCall] : [toolCall]
                     }
                     : msg
                 ));
@@ -446,6 +446,12 @@ export default function Home() {
                       <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full border border-orange-500/20">
                         {message.timestamp}
                       </span>
+                      { message.toolCalls?.map((tool) => (
+                        <span key={tool.timestamp} className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 border border-orange-500/20">
+                          <Wrench className="w-3 h-3 text-orange-400" />
+                          <span className="text-orange-100">{tool.id}</span>
+                        </span>
+                      ))}
                       {!message.isUser && typeof message.timeFirstToken === 'number' && (
                         <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 border border-orange-500/20">
                           <Clock className="w-3 h-3 text-orange-400" />

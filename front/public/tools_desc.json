@@ -1,9 +1,112 @@
 {
+    "web_scraper": {
+        "id": 1,
+        "name": "web_scraper",
+        "description": "Scrape content from web pages and extract structured data",
+        "category": "Data Collection",
+        "parameters": [
+            {
+                "name": "url",
+                "type": "string",
+                "description": "The URL to scrape",
+                "required": true
+            },
+            {
+                "name": "selector",
+                "type": "string",
+                "description": "CSS selector for specific elements",
+                "required": false
+            },
+            {
+                "name": "format",
+                "type": "string",
+                "description": "Output format",
+                "required": false,
+                "enum": [
+                    "json",
+                    "csv",
+                    "xml"
+                ]
+            }
+        ],
+        "examples": [
+            "Scraper le contenu d'une page produit e-commerce",
+            "Extraire les prix depuis un site concurrent",
+            "Collecter des données de contact depuis un annuaire"
+        ],
+        "usage_count": 1247,
+        "last_used": "2025-06-03 10: 30",
+        "status": "active"
+    },
     "getEnterpriseData": {
+        "id": 2,
         "name": "getEnterpriseData",
         "description": "Retrieves enterprise data from the specified source.",
+        "category": "Data Retrieval",
         "permissions": [
             "read:enterprise_data"
-        ]
+        ],
+        "parameters": [
+            {
+                "name": "source",
+                "type": "string",
+                "description": "The source from which to retrieve enterprise data",
+                "required": true
+            },
+            {
+                "name": "filters",
+                "type": "object",
+                "description": "Optional filters to apply to the data retrieval",
+                "required": false
+            }
+        ],
+        "examples": [
+            "Récupérer les données d'une entreprise spécifique",
+            "Obtenir des informations financières d'une société cotée en bourse",
+            "Accéder aux données de performance d'une entreprise"
+        ],
+        "usage_count": 532,
+        "last_used": "2025-06-02 14:15",
+        "status": "active"
+    },
+    "pdf_analyzer": {
+        "id": 3,
+        "name": "pdf_analyzer",
+        "description": "Analyze PDF documents and extract key information",
+        "category": "Document Processing",
+        "parameters": [
+            {
+                "name": "file_path",
+                "type": "string",
+                "description": "Path to the PDF file",
+                "required": true
+            },
+            {
+                "name": "extract_tables",
+                "type": "boolean",
+                "description": "Whether to extract tables",
+                "required": false
+            },
+            {
+                "name": "language",
+                "type": "string",
+                "description": "Document language for OCR",
+                "required": false,
+                "enum": [
+                    "fr",
+                    "en",
+                    "es",
+                    "de"
+                ]
+            }
+        ],
+        "examples": [
+            "Analyser un rapport financier",
+            "Extraire des données depuis une facture",
+            "Résumer le contenu d'un contrat"
+        ],
+        "usage_count": 856,
+        "last_used": "2025-06-03 09:15",
+        "status": "active"
     }
 }
