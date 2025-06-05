@@ -13,7 +13,7 @@ type CreateUser = {
 
 export async function FetchUsers(): Promise<Response> {
     try {
-        const response = await fetch('/api/admin/users/getAllUsers', {
+        const response = await fetch('/api/admin/users/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -27,7 +27,7 @@ export async function FetchUsers(): Promise<Response> {
         const data = await response.json();
         return {
             success: true,
-            message: data.message,
+            message: data.users,
             error: null
         }
     } catch (error) {
@@ -50,11 +50,35 @@ export async function CreateUsers(user_data: string) {
     });
 }
 
-export async function DeleteUser(user_id: string) {
-    const response = await fetch(`api/admin/users/deleteUser/${user_id}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
+export async function DeleteUser(user_id: string): Promise<Response> {
+    const formData = new FormData();
+    formData.append('userId', user_id);
+    formData.append('csrfToken', 'your_csrf_token_here'); // Replace with actual CSRF token if needed
+
+    try {
+        const response = await fetch(`api/admin/users/deleteUser`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error deleting user:', errorText, 'Status:', response.status);
+            throw new Error(errorText);
         }
-    });
+        const data = await response.json();
+        return {
+            success: true,
+            message: data.message || 'User deleted successfully',
+            error: null
+        }
+        
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        return {
+            success: false,
+            message: null,
+            error: error instanceof Error ? error.message : 'Error deleting user'
+        }
+    }
 }

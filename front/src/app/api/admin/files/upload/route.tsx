@@ -10,23 +10,14 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const userForm = await request.formData();
-        const userData = new Map<string, any>();
-        userForm.forEach((value, key) => {
-            if (key === 'admin') {
-                // Convert 'admin' field to boolean
-                userData.set(key, value === 'true'? true : false)
-            }
-            userData.set(key, value);
-        });
+        const filesForm = await request.formData();
 
-        const response = await fetch(`${process.env.API_URL || "http://localhost:8080/api/v1"}/users/register`, {
+        const response = await fetch(`${process.env.API_URL || "http://localhost:8080/api/v1"}/admin/upload`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify(Object.fromEntries(userData.entries())),
+            body: filesForm,
         });
 
         if (!response.ok) {
@@ -36,11 +27,7 @@ export async function POST(request: NextRequest) {
         }
 
         const data = await response.json();
-
-        return Response.json(
-            { message: 'User created successfully', data: Object.fromEntries(userData.entries()) },
-            { status: 200 }
-        );
+        return Response.json(data, { status: 200 });
     } catch (error) {
         console.error('Error creating user:', error);
         return Response.json({ error: 'Internal Server Error' }, { status: 500 });

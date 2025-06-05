@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,20 +38,24 @@ import {
   UsersRoundIcon,
   FileSpreadsheetIcon,
   FileStackIcon,
-  CompassIcon
+  CompassIcon,
+  UserPlusIcon
 } from 'lucide-react';
-import { FetchUsers } from './handleUsers';
-import { FetchFiles } from './handleFiles';
-import { FetchCompany } from './handleCompany';
+import { DeleteUser, FetchUsers } from './handleUsers';
+import { DeleteFiles, FetchFiles } from './handleFiles';
 import { FetchTools } from './handleTools';
+import { useAuth } from '@/context/AuthContext';
+import { log } from 'console';
 
 interface User {
   id: string;
   username: string;
   email: string;
-  role: string;
-  lastLogin: string;
-  status: 'active' | 'inactive';
+  password: string;
+  full_name: string;
+  admin: boolean;
+  disabled: boolean;
+  created_at: string;
 }
 
 interface File {
@@ -59,7 +63,7 @@ interface File {
   name: string;
   type: string;
   size: string;
-  uploadDate: string;
+  updated_at: string;
   status: 'processing' | 'ready' | 'error';
 }
 
@@ -107,6 +111,8 @@ interface Tool {
 }
 
 export default function AdminPage() {
+  const { user, logout } = useAuth();
+
   const [activeTab, setActiveTab] = useState<'users' | 'files' | 'conversations' | 'stats' | 'company' | 'tools'>('users');
   const [loading, setLoading] = useState(true);
   const [errorMess, setErrorMess] = useState<string | null>(null);
@@ -115,46 +121,62 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [tools, setTools] = useState<Tool[]>([]);
+  const [company, setCompany] = useState<Company>({
+    "id": "1",
+    "name": 'ScrapeAI Technologies',
+    "description": 'An innovative company specializing in artificial intelligence and data process automation.',
+    "industry": 'Technology / Artificial Intelligence',
+    "employeeCount": 150,
+    "foundedYear": 2020,
+    "address": '123 Innovation Avenue, 75001 Paris, France',
+    "phone": '+33 1 23 45 67 89',
+    "email": 'contact@scrapeai.com',
+    "website": 'https://www.scrapeai.com',
+    "services": [
+      'Web data scraping',
+      'AI data analysis',
+      'Process automation',
+      'AI consulting',
+      'Custom solutions'
+    ],
+    "departments": [
+      'Development',
+      'Data Science',
+      'Marketing',
+      'Sales',
+      'Customer Support',
+      'Human Resources',
+      'Finance'
+    ]
+  });
   const [conversations, setConversations] = useState<Conversation[]>([
     { id: '1', user: 'user1', messages: 15, lastMessage: 'Merci pour ces informations', date: '2025-05-31 14:25' },
     { id: '2', user: 'user2', messages: 8, lastMessage: 'Peux-tu analyser ce document ?', date: '2025-05-31 11:30' },
     { id: '3', user: 'admin', messages: 23, lastMessage: 'Configuration terminée', date: '2025-05-30 16:45' },
   ]);
 
-  // Mock company data
-  const [company, setCompany] = useState<Company>({} as Company)
-  // {
-  //   id: '1',
-  //   name: 'ScrapeAI Technologies',
-  //   description: 'Une entreprise innovante spécialisée dans l\'intelligence artificielle et l\'automatisation des processus de données.',
-  //   industry: 'Technologie / Intelligence Artificielle',
-  //   employeeCount: 150,
-  //   foundedYear: 2020,
-  //   address: '123 Avenue de l\'Innovation, 75001 Paris, France',
-  //   phone: '+33 1 23 45 67 89',
-  //   email: 'contact@scrapeai.com',
-  //   website: 'https://www.scrapeai.com',
-  //   services: [
-  //     'Scraping de données web',
-  //     'Analyse de données par IA',
-  //     'Automatisation de processus',
-  //     'Consultation en IA',
-  //     'Solutions personnalisées'
-  //   ],
-  //   departments: [
-  //     'Développement',
-  //     'Data Science',
-  //     'Marketing',
-  //     'Ventes',
-  //     'Support Client',
-  //     'Ressources Humaines',
-  //     'Finance'
-  //   ]
-  // });
+  // Modal utilisateur
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [newUser, setNewUser] = useState({
+    username: '',
+    email: '',
+    password: '',
+    job: '',
+    full_name: '',
+    admin: false
+  });
+  const [creatingUser, setCreatingUser] = useState(false);
+
+  // Modal upload
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<globalThis.File[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const stats = {
     totalUsers: users.length,
-    activeUsers: users.filter(u => u.status === 'active').length,
+    activeUsers: users.filter(u => u.disabled === false).length,
     totalFiles: files.length,
     totalConversations: conversations.length,
     storageUsed: '45.2 GB',
@@ -176,6 +198,7 @@ export default function AdminPage() {
               setErrorMess(resp.error || 'Erreur lors de la récupération des utilisateurs');
             }
             break;
+
           case 'files':
             const resp2 = await FetchFiles();
             if (resp2.success) {
@@ -184,17 +207,15 @@ export default function AdminPage() {
               setErrorMess(resp2.error || 'Erreur lors de la récupération des files');
             }
             break;
+
           case 'conversations':
             // Conversations are static, no API call needed
             break;
+
           case 'company':
-            const resp3 = await FetchCompany();
-            if (resp3.success) {
-              setCompany(resp3.message);
-            } else {
-              setErrorMess(resp3.error || 'Erreur lors de la récupération de l\'entreprise');
-            }
+            // Company are static, no API call needed
             break;
+
           case 'tools':
             const resp4 = await FetchTools();
             if (resp4.success) {
@@ -203,10 +224,11 @@ export default function AdminPage() {
               setErrorMess(resp4.error || 'Erreur lors de la récupération des tools');
             }
             break;
+
           case 'stats':
             // Stats are static, no API call needed
-
             break;
+
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -239,15 +261,18 @@ export default function AdminPage() {
 
   const handleCompanyUpdate = async () => {
     try {
-      const response = await fetch('/api/admin/company', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(company),
-      });
-
-      if (!response.ok) throw new Error('Failed to update company data');
+      setCompany(prev => ({
+        ...prev,
+        name: company.name.trim(),
+        description: company.description.trim(),
+        industry: company.industry.trim(),
+        employeeCount: company.employeeCount,
+        foundedYear: company.foundedYear,
+        address: company.address.trim(),
+        phone: company.phone.trim(),
+        email: company.email.trim(),
+        website: company.website.trim(),
+      }));
 
       setIsEditingCompany(false);
       console.log('Company updated:', company);
@@ -272,6 +297,198 @@ export default function AdminPage() {
     }));
   };
 
+  // Fonction pour créer un utilisateur
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingUser(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('username', newUser.username);
+      formData.append('email', newUser.email);
+      formData.append('password', newUser.password);
+      formData.append('job', newUser.job);
+      formData.append('full_name', newUser.full_name);
+      formData.append('admin', newUser.admin ? 'true' : 'false');
+
+      const response = await fetch('/api/admin/users/createUsers', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          logout(); // Déconnexion si non autorisé
+          throw new Error('Please log in again to continue.');
+        }
+        throw new Error('Erreur lors de l\'upload des fichiers');
+      }
+
+      const result = await response.json();
+
+      // Réinitialiser le formulaire
+      setNewUser({
+        username: '',
+        email: '',
+        password: '',
+        job: '',
+        full_name: '',
+        admin: false
+      });
+
+      // Fermer la modal
+      setShowUserModal(false);
+
+      // Recharger la liste des utilisateurs (vous devrez implémenter cette fonction)
+      setTimeout(async () => {
+        const resp = await FetchUsers();
+        if (resp.success) {
+          setUsers(resp.message);
+        } else {
+          setErrorMess(resp.error || 'Erreur lors de la récupération des utilisateurs');
+        }
+      }, 1000);
+
+      console.log('Utilisateur créé avec succès:', result);
+
+    } catch (error) {
+      console.error('Erreur:', error);
+      // Gérer l'erreur (afficher un message d'erreur, etc.)
+      // setErrorMess(error.message);
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
+  // Fonction pour gérer le drop de fichiers
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  // Fonction pour gérer le survol lors du drag
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  // Fonction pour gérer la sortie du drag
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  // Fonction pour sélectionner des fichiers via l'input
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setSelectedFiles(prev => [...prev, ...fileArray]);
+    }
+  };
+
+  // Fonction pour supprimer un fichier de la liste
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Fonction pour uploader les fichiers
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) return;
+
+    setUploading(true);
+    console.log('Uploading files:', selectedFiles);
+
+    try {
+      const formData = new FormData();
+
+      // Ajouter tous les fichiers au FormData
+      selectedFiles.forEach((file, index) => {
+        formData.append('files', file, file.name);
+      });
+
+      console.log('FormData prepared:', formData);
+
+      const response = await fetch('/api/admin/files/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          logout(); // Déconnexion si non autorisé
+          throw new Error('Please log in again to continue.');
+        }
+        throw new Error('Erreur lors de l\'upload des fichiers');
+      }
+
+      const result = await response.json();
+
+      // Réinitialiser la sélection de fichiers
+      setSelectedFiles([]);
+
+      // Fermer la modal
+      setShowUploadModal(false);
+
+      // Recharger la liste des fichiers (vous devrez implémenter cette fonction)
+      setTimeout(async () => {
+        const resp = await FetchFiles();
+        if (resp.success) {
+          setFiles(resp.message);
+        } else {
+          setErrorMess(resp.error || 'Erreur lors de la récupération des fichiers');
+        }
+      }, 1000);
+
+      console.log('Fichiers uploadés avec succès:', result);
+
+    } catch (error) {
+      console.error('Erreur lors de l\'upload:', error);
+      // Gérer l'erreur (afficher un message d'erreur, etc.)
+      // setErrorMess(error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Fonction utilitaire pour réinitialiser le formulaire utilisateur
+  const resetUserForm = () => {
+    setNewUser({
+      username: '',
+      email: '',
+      password: '',
+      job: '',
+      full_name: '',
+      admin: false
+    });
+  };
+
+  // Fonction utilitaire pour réinitialiser l'upload
+  const resetUploadForm = () => {
+    setSelectedFiles([]);
+    setIsDragOver(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Fonction pour fermer la modal utilisateur avec réinitialisation
+  const closeUserModal = () => {
+    setShowUserModal(false);
+    resetUserForm();
+  };
+
+  // Fonction pour fermer la modal upload avec réinitialisation
+  const closeUploadModal = () => {
+    setShowUploadModal(false);
+    resetUploadForm();
+  };
 
   return (
     <ProtectedRoute validateAdmin={true}>
@@ -369,10 +586,12 @@ export default function AdminPage() {
 
             {/* Error Message */}
             {errorMess && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mb-6 p-4 bg-black border border-red-500 rounded-lg shadow-lg shadow-red-500/30">
                 <div className="flex items-center">
-                  <X className="h-5 w-5 text-red-600 mr-2" />
-                  <span className="text-red-800">{errorMess}</span>
+                  <div className="flex-shrink-0 mr-3">
+                    <Info className="h-5 w-5 text-red-500" />
+                  </div>
+                  <span className="text-red-400 font-medium">Error: {errorMess}</span>
                 </div>
               </div>
             )}
@@ -392,8 +611,8 @@ export default function AdminPage() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">User Management</h2>
-                  <Button>
-                    <Users className="h-4 w-4 mr-2" />
+                  <Button onClick={() => setShowUserModal(true)}>
+                    <UserPlusIcon className="h-4 w-4 mr-2" />
                     New User
                   </Button>
                 </div>
@@ -405,7 +624,7 @@ export default function AdminPage() {
                           <th className="p-4">User</th>
                           <th className="p-4">Email</th>
                           <th className="p-4">Role</th>
-                          <th className="p-4">Last Login</th>
+                          <th className="p-4">Creation Date</th>
                           <th className="p-4">Status</th>
                           <th className="p-4">Actions</th>
                         </tr>
@@ -416,16 +635,16 @@ export default function AdminPage() {
                             <td className="p-4 font-medium">{user.username}</td>
                             <td className="p-4 text-muted-foreground">{user.email}</td>
                             <td className="p-4">
-                              <span className={`px-2 py-1 rounded-full text-xs ${user.role === 'Admin' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                              <span className={`px-2 py-1 rounded-full text-xs ${user.admin ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
                                 }`}>
-                                {user.role}
+                                {user.admin ? 'Admin' : 'User'}
                               </span>
                             </td>
-                            <td className="p-4 text-muted-foreground">{user.lastLogin}</td>
+                            <td className="p-4 text-muted-foreground">{user.created_at}</td>
                             <td className="p-4">
-                              <span className={`px-2 py-1 rounded-full text-xs ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                              <span className={`px-2 py-1 rounded-full text-xs ${user.disabled === false ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                                 }`}>
-                                {user.status === 'active' ? 'Active' : 'Inactive'}
+                                {user.disabled === false ? 'Active' : 'Inactive'}
                               </span>
                             </td>
                             <td className="p-4">
@@ -433,9 +652,18 @@ export default function AdminPage() {
                                 <Button variant="ghost" size="sm">
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                {user.admin === false && (
+                                  <Button variant="ghost" size="sm" onClick={async () => {
+                                    console.log('Delete user:', user);
+                                    setUsers(prev => prev.filter(u => u.id !== user.id));
+
+                                    const resp = await DeleteUser(user.id);
+                                    if (!resp.success) {
+                                      setErrorMess(resp.error || 'User deletion failed');
+                                    }
+                                  }}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>)}
                               </div>
                             </td>
                           </tr>
@@ -460,7 +688,7 @@ export default function AdminPage() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">File Management</h2>
-                  <Button>
+                  <Button onClick={() => setShowUploadModal(true)}>
                     <Upload className="h-4 w-4 mr-2" />
                     Upload File
                   </Button>
@@ -484,13 +712,13 @@ export default function AdminPage() {
                             <td className="p-4 font-medium">{file.name}</td>
                             <td className="p-4 text-muted-foreground">{file.type}</td>
                             <td className="p-4 text-muted-foreground">{file.size}</td>
-                            <td className="p-4 text-muted-foreground">{file.uploadDate}</td>
+                            <td className="p-4 text-muted-foreground">{file.updated_at}</td>
                             <td className="p-4">
-                              <span className={`px-2 py-1 rounded-full text-xs ${file.status === 'ready' ? 'bg-green-100 text-green-800' :
+                              <span className={`px-2 py-1 rounded-full text-xs ${file.status === undefined ? 'bg-green-100 text-green-800' :
                                 file.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
                                   'bg-red-100 text-red-800'
                                 }`}>
-                                {file.status === 'ready' ? 'Ready' :
+                                {file.status === undefined ? 'Ready' :
                                   file.status === 'processing' ? 'Processing' : 'Error'}
                               </span>
                             </td>
@@ -499,7 +727,15 @@ export default function AdminPage() {
                                 <Button variant="ghost" size="sm">
                                   <Download className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm">
+                                <Button variant="ghost" size="sm" onClick={async () => {
+                                  console.log('Delete file:', file);
+                                  setFiles(prev => prev.filter(u => u.id !== file.id));
+
+                                  const resp = await DeleteFiles(file.id);
+                                  if (!resp.success) {
+                                    setErrorMess(resp.error || 'User deletion failed');
+                                  }
+                                }}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -519,6 +755,231 @@ export default function AdminPage() {
                     </p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Modal Créer Utilisateur */}
+            {showUserModal && (
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                <div className="bg-black/70 border border-orange-500 rounded-lg p-6 w-full max-w-md mx-4 shadow-lg shadow-orange-500/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-orange-500">Create New User</h3>
+                    <Button variant="ghost" size="sm" onClick={() => setShowUserModal(false)} className="text-orange-500 hover:text-orange-400 hover:bg-orange-500/10">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <form onSubmit={handleCreateUser} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-orange-400">Username</label>
+                      <Input
+                        type="text"
+                        value={newUser.username}
+                        onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                        placeholder="Enter username"
+                        required
+                        className="bg-gray-900 border-orange-500/30 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-orange-500/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-orange-400">Email</label>
+                      <Input
+                        type="email"
+                        value={newUser.email}
+                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                        placeholder="Enter email"
+                        required
+                        className="bg-gray-900 border-orange-500/30 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-orange-500/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-orange-400">Password</label>
+                      <Input
+                        type="password"
+                        value={newUser.password}
+                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                        placeholder="Enter password"
+                        required
+                        className="bg-gray-900 border-orange-500/30 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-orange-500/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-orange-400">Full Name</label>
+                      <Input
+                        type="text"
+                        value={newUser.full_name}
+                        onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })}
+                        placeholder="Enter full name"
+                        required
+                        className="bg-gray-900 border-orange-500/30 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-orange-500/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-orange-400">Job Title</label>
+                      <Input
+                        type="text"
+                        value={newUser.job}
+                        onChange={(e) => setNewUser({ ...newUser, job: e.target.value })}
+                        placeholder="Enter job title"
+                        className="bg-gray-900 border-orange-500/30 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-orange-500/20"
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="admin"
+                        checked={newUser.admin}
+                        onChange={(e) => setNewUser({ ...newUser, admin: e.target.checked })}
+                        className="rounded border-orange-500 bg-gray-900 text-orange-500 focus:ring-orange-500/20"
+                      />
+                      <label htmlFor="admin" className="text-sm font-medium text-orange-400">
+                        Administrator
+                      </label>
+                    </div>
+
+                    <div className="flex justify-end space-x-2 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowUserModal(false)}
+                        className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={creatingUser}
+                        className="bg-orange-500 hover:bg-orange-600 text-black font-medium shadow-lg shadow-orange-500/30"
+                      >
+                        {creatingUser ? 'Creating...' : 'Create'}
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Upload Fichier */}
+            {showUploadModal && (
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                <div className="bg-black/80 border border-orange-500 rounded-lg p-6 w-full max-w-md mx-4 shadow-xl shadow-orange-500/40">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold text-orange-500">Upload Files</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowUploadModal(false)}
+                      className="text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 rounded-full"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Drop Zone */}
+                    <div
+                      onDrop={handleDrop}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${isDragOver
+                        ? 'border-orange-500 bg-orange-500/10 shadow-inner shadow-orange-500/20'
+                        : 'border-orange-500/30 hover:border-orange-500/50 hover:bg-orange-500/5'
+                        }`}
+                    >
+                      <Upload className={`h-12 w-12 mx-auto mb-4 transition-colors ${isDragOver ? 'text-orange-400' : 'text-orange-500/70'
+                        }`} />
+                      <p className="text-lg font-medium mb-2 text-orange-400">
+                        Drag and drop your files here
+                      </p>
+                      <p className="text-sm text-gray-400 mb-4">
+                        or click to browse
+                      </p>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        multiple
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500 transition-all duration-200"
+                      >
+                        Browse Files
+                      </Button>
+                    </div>
+
+                    {/* Selected Files List */}
+                    {selectedFiles.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-orange-400 border-b border-orange-500/20 pb-2">
+                          Selected Files:
+                        </h4>
+                        <div className="max-h-40 overflow-y-auto space-y-2">
+                          {selectedFiles.map((file, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-3 bg-gray-900 border border-orange-500/20 rounded-lg hover:border-orange-500/40 transition-colors"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <FileText className="h-4 w-4 text-orange-500" />
+                                <div className="flex flex-col">
+                                  <span className="text-sm text-white truncate max-w-[200px]">
+                                    {file.name}
+                                  </span>
+                                  <span className="text-xs text-gray-400">
+                                    {(Number(file.size) / 1024 / 1024).toFixed(2)} MB
+                                  </span>
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFile(index)}
+                                className="text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 rounded-full"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end space-x-3 pt-4 border-t border-orange-500/20">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowUploadModal(false)}
+                        className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleUpload}
+                        disabled={selectedFiles.length === 0 || uploading}
+                        className="bg-orange-500 hover:bg-orange-600 text-black font-medium shadow-lg shadow-orange-500/30 disabled:bg-orange-500/50 disabled:text-black/50 transition-all duration-200"
+                      >
+                        {uploading ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                            <span>Uploading...</span>
+                          </div>
+                        ) : (
+                          'Upload'
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -572,7 +1033,7 @@ export default function AdminPage() {
             {!loading && activeTab === 'company' && (
               <div>
                 {company.id ? (
-                <><div className="flex items-center justify-between mb-6">
+                  <><div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold">Company Information</h2>
                     <div className="flex space-x-2">
                       {isEditingCompany ? (
@@ -767,7 +1228,7 @@ export default function AdminPage() {
                                     addArrayItem('services', e.currentTarget.value);
                                     e.currentTarget.value = '';
                                   }
-                                } } />
+                                }} />
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -777,7 +1238,7 @@ export default function AdminPage() {
                                     addArrayItem('services', input.value);
                                     input.value = '';
                                   }
-                                } }
+                                }}
                               >
                                 <Plus className="h-4 w-4" />
                               </Button>
@@ -816,7 +1277,7 @@ export default function AdminPage() {
                                     addArrayItem('departments', e.currentTarget.value);
                                     e.currentTarget.value = '';
                                   }
-                                } } />
+                                }} />
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -826,7 +1287,7 @@ export default function AdminPage() {
                                     addArrayItem('departments', input.value);
                                     input.value = '';
                                   }
-                                } }
+                                }}
                               >
                                 <Plus className="h-4 w-4" />
                               </Button>
@@ -839,7 +1300,7 @@ export default function AdminPage() {
                     <CompassIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-medium mb-2">No Company found</h3>
                     <p className="text-muted-foreground">
-                      { 'Please, fulfill your company data on our WebSite!' }
+                      {'Please, fulfill your company data on our WebSite!'}
                     </p>
                   </div>
                 )}
@@ -1060,7 +1521,7 @@ export default function AdminPage() {
               </div>
             )}
           </main>
-        </div>
+        </div >
       </div >
     </ProtectedRoute >
   );

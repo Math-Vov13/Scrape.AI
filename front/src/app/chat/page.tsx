@@ -42,16 +42,16 @@ type ChatHistory = {
 }
 
 const startConversation = [
-  ", comment puis-je vous aider aujourd'hui ?",
-  ", que puis-je faire pour vous ?",
-  ". Comment puis-je vous assister ?",
-  ", avez-vous une question ou un sujet en tête ?",
-  ", je suis là pour répondre à vos questions.",
-  ", je suis là pour répondre à vos questions. Souhaitez-vous un résumé des dernières actualités dans votre entreprise aujourd'hui ?",
-  ". Voulez-vous que je vous rappelle vos prochaines tâches à accomplir ?",
-  ", quelles sont vos envies ou priorités pour aujourd’hui ? Je peux vous aider à les organiser.",
-  ", avez-vous besoin d’accéder à des informations sur un document spécifique ? Ou juste discuter de vos envies ?",
-  ", je suis prêt à vous assister ! Par où démarrons-nous aujourd'hui ?",
+  ", how can I help you today?",
+  ", what can I do for you?",
+  ". How can I assist you?",
+  ", do you have a question or topic in mind?",
+  ", I'm here to answer your questions.",
+  ", I'm here to answer your questions. Would you like a summary of the latest news in your company today?",
+  ". Would you like me to remind you of your upcoming tasks?",
+  ", what are your goals or priorities for today? I can help you organize them.",
+  ", do you need access to information on a specific document? Or just want to chat about what's on your mind?",
+  ", I'm ready to assist you! Where shall we start today?",
 ]
 
 export default function Home() {
@@ -293,7 +293,7 @@ export default function Home() {
           </div>
 
           <div className="ml-auto flex items-center space-x-2">
-            Connected as <span className="font-semibold text-orange-500 ml-1">"{user?.full_name}"</span>{ "   " }
+            Connected as <span className="font-semibold text-orange-500 ml-1">"{user?.full_name}"</span>{"   "}
             <Button
               variant="outline"
               size="sm"
@@ -303,18 +303,18 @@ export default function Home() {
                 Logout
               </a>
             </Button>
-            { user?.admin && (
+            {user?.admin && (
               <>
-              <Settings className="h-5 w-5" />
-              <Button
-                variant="outline"
-                size="sm"
-                asChild
-              >
-                <a href="/admin">
-                  Go to Admin Panel
-                </a>
-              </Button>
+                <Settings className="h-5 w-5" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                >
+                  <a href="/admin">
+                    Go to Admin Panel
+                  </a>
+                </Button>
               </>
             )}
           </div>
@@ -446,7 +446,7 @@ export default function Home() {
                       <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full border border-orange-500/20">
                         {message.timestamp}
                       </span>
-                      { message.toolCalls?.map((tool) => (
+                      {message.toolCalls?.map((tool) => (
                         <span key={tool.timestamp} className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 border border-orange-500/20">
                           <Wrench className="w-3 h-3 text-orange-400" />
                           <span className="text-orange-100">{tool.id}</span>

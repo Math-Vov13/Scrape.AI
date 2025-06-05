@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const response = await fetch(`${process.env.API_URL || "http://localhost:8080/api/v1"}/admin/users`, {
+        const response = await fetch(`${process.env.API_URL || "http://localhost:8080/api/v1"}/admin/files`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        if (response.status === 401) {
+        if (response.status === 401 || response.status === 403) {
             return new Response(
                 JSON.stringify({ error: 'Unauthorized' }),
                 { status: 401, headers: { 'Content-Type': 'application/json' } }
