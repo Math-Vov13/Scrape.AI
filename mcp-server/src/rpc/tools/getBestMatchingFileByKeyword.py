@@ -1,18 +1,13 @@
-# -*- coding: utf-8 -*-
-# Hello World Tool
-
-schema = """
-"""
-
 import glob
 import concurrent.futures
-from docx import Document
-import easyocr
-import csv
-import fitz  
 import re
 from rapidfuzz import fuzz
 import statistics
+from docx import Document
+import csv
+import fitz  
+
+
 
 
 def txt_reader(file_name):
@@ -27,11 +22,7 @@ def csv_reader(file_name):
     with open(file_name, newline='', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile)
         rows = ['\t'.join(row) for row in reader]
-        return rows  # Return as list, not string
-"""def img_reader(file_name):
-    reader = easyocr.Reader(['fr']) 
-    result = reader.readtext(file_name)
-    return str(result)"""
+        return str('\n'.join(rows))
 def pdf_reader(file_name):
     doc = fitz.open(file_name)
     lignes = []
@@ -53,12 +44,8 @@ def read_file(file_name):
         return csv_reader(file_name)
     elif file_name.endswith(".pdf"):
         return pdf_reader(file_name)
-    # elif file_name.endswith(".png"):
-    #     return img_reader(file_name)
-    else:
-        print(f"Unsupported file type: {file_name}")
-        return []
     
+
 
 
 
@@ -85,9 +72,6 @@ def score_filename(liste_mot :list[str],title):
     return best_score
 
 def folder_path(list_path):
-    if not list_path:
-        return {}
-    
     dict_path={}
     value=[]
     last_key="/".join(list_path[0].split("/")[:-1])
@@ -128,16 +112,12 @@ def score_folders(words_list,folder_names):
 
 
 def files_ordered(list_files,similar_words):
-    if not list_files:
-        return []
-        
-    files_path=folder_path(list_files)
-    folder_names = list(files_path.keys())  # Extract folder names from the dictionary
-    folder_number= score_folders(similar_words,folder_names)
+    folder_number= score_folders(similar_words,folder_path(list_files))
     folder_number.sort(key=lambda x: x[1], reverse=True)
     temp_folder_score=[]
     for j in folder_number:
         temp_folder_score.append(j[0])
+    files_path=folder_path(list_files)
 
 
     temp_filename_score=[]
@@ -194,31 +174,21 @@ def Levenshtein(target, text_lines):
     return [score_content(s),rl]
 
 
-
-
-
-
-
-
-
-
-
-
 def find_files():
-    docker_files = glob.glob("/code/me/**/*.txt", recursive=True) + glob.glob("/code/me/**/*.pdf", recursive=True)
-    return docker_files
+    return glob.glob("/code/me/**/*.txt", recursive=True) + glob.glob("/code/me/**/*.pdf", recursive=True)
 
 def analyse_file(args):
     mot, file_path = args
     contenu_fichier = read_file(file_path)
     result = Levenshtein(mot, contenu_fichier)
+    
     result.append(file_path)
     return result
 
 
 def analyse_files(mot, files,similar_words, max_workers: int = 8):
-    # Utilisation de ThreadPoolExecutor pour éviter les problèmes de pickling
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+        
         list_exec=files_ordered(files,similar_words)
         args_list = [(mot, file) for file in list_exec]
 
@@ -232,46 +202,16 @@ def analyse_files(mot, files,similar_words, max_workers: int = 8):
                 yield None
 
 
-
-
-
-
-def tool(searching_word, similar_words):
-    """
-    This is a tool that returns a Hello World message.
-    """
-    print("-"*1000)
-    print(f"searching_word {searching_word}")
-    print(f"similar {similar_words}")
-    print(f"Type of similar_words: {type(similar_words)}")
-    
-    # Robust type handling for similar_words
-    if isinstance(similar_words, dict):
-        similar_words = list(similar_words.values())
-    elif isinstance(similar_words, list):
-        pass  # already a list
-    elif isinstance(similar_words, str):
-        similar_words = [similar_words]
-    else:
-        raise TypeError(f"similar_words must be dict, list, or str, got {type(similar_words)}")
-    
-    print(f"similar_words after processing: {similar_words}")
+def tool(searching_word,similar_words):
     positive_file_count=0
     result=[]
-    files=find_files()
-    print(f"Found {len(files)} files: {files}")
-    
-    
 
+    files=find_files()
     for i in analyse_files(searching_word,files,similar_words):
-        print(f"Analysis result: {i}")
-        if i is not None and len(i) > 0 and i[0] > 0.5:  
-            result.append(i[1:])
+        if i[0]>2:
+            result.append(i)
             positive_file_count+=1
 
-            if positive_file_count==2:
-                break
-
-
-    
     return result
+
+
