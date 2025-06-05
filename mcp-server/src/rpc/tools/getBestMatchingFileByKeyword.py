@@ -1,5 +1,8 @@
 import glob
 import concurrent.futures
+from docx import Document
+import csv
+import fitz
 import re
 from rapidfuzz import fuzz
 import statistics
@@ -175,7 +178,7 @@ def Levenshtein(target, text_lines):
 
 
 def find_files():
-    return glob.glob("/code/me/**/*.txt", recursive=True) + glob.glob("/code/me/**/*.pdf", recursive=True)
+    return glob.glob("me/**/*.txt", recursive=True) + glob.glob("me/**/*.pdf", recursive=True) + glob.glob("me/**/*.docx", recursive=True)
 
 def analyse_file(args):
     mot, file_path = args
@@ -208,10 +211,11 @@ def tool(searching_word,similar_words):
 
     files=find_files()
     for i in analyse_files(searching_word,files,similar_words):
-        if i[0]>2:
-            result.append(i)
+        print(i)
+        if i[0]>1:
+            result.append(i[-1])
             positive_file_count+=1
-
-    return result
-
+        if positive_file_count==1 and i[0]>1:
+            return read_file(result)
+    return "No file"
 

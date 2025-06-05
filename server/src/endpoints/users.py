@@ -1,9 +1,47 @@
-from fastapi import APIRouter, Body, status
+from typing import Annotated
+from fastapi import APIRouter, Body, status, Depends
 from fastapi.responses import JSONResponse
-from src.schema.users_sc import UserCreate, UserLogin
+from src.endpoints.token import get_current_user
+from src.schema.users_sc import UserBase, UserCreate, UserLogin
 import src.models.user_db as user_db
 
 router = APIRouter()
+
+@router.get("/")
+async def get_users(current_user: Annotated[UserBase, Depends(get_current_user)]):
+    if not current_user.admin:
+        return JSONResponse(status_code= status.HTTP_403_FORBIDDEN, content={
+            "message": "You do not have permission to view users!",
+        })
+    
+    users = await user_db.getAllUsers()
+    if not users:
+        return JSONResponse(status_code= status.HTTP_404_NOT_FOUND, content={
+            "message": "No users found!",
+        })
+    
+    return JSONResponse(status_code= status.HTTP_200_OK, content={
+        "message": "Users retrieved successfully!",
+        "users": [ i.model_dump(mode="json") for i in users ]
+    })
+
+
+@router.delete("/{user_id}")
+async def delete_user(user_id: str, current_user: Annotated[UserBase, Depends(get_current_user)]):
+    if not current_user.admin:
+        return JSONResponse(status_code= status.HTTP_403_FORBIDDEN, content={
+            "message": "You do not have permission to delete users!",
+        })
+    
+    deleted = await user_db.deleteUser(user_id)
+    if not deleted:
+        return JSONResponse(status_code= status.HTTP_404_NOT_FOUND, content={
+            "message": "User not found!",
+        })
+    
+    return JSONResponse(status_code= status.HTTP_200_OK, content={
+        "message": "User deleted successfully!",
+    })
 
 
 @router.post("/register")
