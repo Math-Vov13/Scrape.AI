@@ -38,7 +38,7 @@ def createSystemPrompt(username: str, model: str = "OpenAI") -> str:
     ## User Information
     The user who is talking to you is named '{username}'.
     The user job is 'admin'.
-    The user prefered language is 'french'.
+    The user prefered language is 'english'.
     The user access to the entreprise data is 'admin'.
     """
 
@@ -136,6 +136,8 @@ async def sendChat(conv_history: list[OpenAIUserMessage | OpenAIAssistantMessage
                                     )
 
                                     for tool_request in tool_calls.values():
+                                        yield f"[TOOL_CALL] id: {tool_request.id}, name: {tool_request.function.name}, parameters: {tool_request.function.arguments}\n"
+
                                         response = await callTool(
                                             call_function_id=tool_request.id,
                                             tool_name=tool_request.function.name,
@@ -147,11 +149,9 @@ async def sendChat(conv_history: list[OpenAIUserMessage | OpenAIAssistantMessage
                                         history.append(OpenAIToolMessage(
                                             role="tool",
                                             name=tool_request.function.name,
-                                            content=result_content,
+                                            content=json.dumps(result_content),
                                             tool_call_id=tool_request.id
                                         ))
-
-                                        yield f"[TOOL_CALL] name: {tool_request.function.name}, parameters: {tool_request.function.arguments}\n"
 
                             except json.JSONDecodeError:
                                 continue
@@ -186,7 +186,7 @@ async def callTool(call_function_id: str, tool_name: str, arguments: str) -> str
     print("Calling Tool Request:", req_body)
 
     try:
-        async with httpx.AsyncClient(timeout= Timeout(timeout= 3)) as client:
+        async with httpx.AsyncClient(timeout= Timeout(timeout= 700)) as client:
             print("url:", f"{config.mcp_url}{config.mcp_tools_base_url}/{tool_name}")
             print("headers:", MCP_HEADERS)
             response = await client.post(
@@ -194,6 +194,9 @@ async def callTool(call_function_id: str, tool_name: str, arguments: str) -> str
                 headers=MCP_HEADERS,
                 json=req_body
             )
+
+            print("Tool Call Response:", response.status_code, response.text, flush=True)
+
             if response.status_code == 200:
                 response = response.json()
             else:

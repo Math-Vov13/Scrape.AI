@@ -41,11 +41,12 @@ async def chat(current_user: Annotated[UserBase, Depends(get_current_user)], pro
             async for chunk in sendChat(prompt.messages, model=prompt.model, temperature=prompt.temperature, max_tokens=prompt.max_tokens):
                 if "[TOOL_CALL]" in chunk:
                     chunk = chunk.replace("[TOOL_CALL] ", "")
+                    id = chunk.split("id: ", 1)[1].split(",", 1)[0]
                     name = chunk.split("name: ", 1)[1].split(",", 1)[0]
                     params = chunk.split("parameters:", 1)[1].split("\n", 1)[0]
                     print("tool name streaming:", name, flush=True)
                     print("tool params streaming:", params, flush=True)
-                    yield f"tool: {json.dumps({"name": name, "params": params.strip(), "timestamp": time.time()})}<||CHUNK||>"
+                    yield f"tool: {json.dumps({"id": id[5:], "name": name, "params": params.strip(), "timestamp": time.time()})}<||CHUNK||>"
                     continue
                 yield f"data: {chunk}<||CHUNK||>"
         except Exception as e:

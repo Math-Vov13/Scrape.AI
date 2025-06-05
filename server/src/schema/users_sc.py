@@ -19,6 +19,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     full_name: str
+    created_at: Optional[datetime] = None
 
 class UserLogin(BaseModel):
     email: EmailStr

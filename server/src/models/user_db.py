@@ -1,3 +1,4 @@
+from datetime import datetime
 import random
 from src.schema.users_sc import UserBase, UserCreate
 from src.security.secure import hash_password, verify_password
@@ -64,6 +65,8 @@ async def createUser(data: UserCreate) -> str | None:
         "email": data.email,
         "full_name": data.full_name,
         "disabled": False,
+        "admin": data.admin or False,
+        "created_at": data.created_at or datetime.utcnow(),
     }
 
     result = await db["accounts"].insert_one(user_data)
@@ -91,3 +94,28 @@ async def createUser(data: UserCreate) -> str | None:
     # )
     # print(fake_db)
     # return user_id
+
+async def getAllUsers() -> list[UserBase]:
+    db = connector.get_db(getenv("MONGO_INITDB_DATABASE"))
+    users_cursor = db["accounts"].find()
+    
+    users = []
+    async for user_doc in users_cursor:
+        user = UserBase(**user_doc, id=str(user_doc["_id"]))
+        users.append(user)
+    
+    return users
+
+    # return list(fake_db.values())
+
+async def deleteUser(user_id: str) -> bool:
+    from bson import ObjectId
+    db = connector.get_db(getenv("MONGO_INITDB_DATABASE"))
+    result = await db["accounts"].delete_one({"_id": ObjectId(user_id)})
+    
+    return result.deleted_count > 0
+
+    # if user_id in fake_db:
+    #     del fake_db[user_id]
+    #     return True
+    # return False

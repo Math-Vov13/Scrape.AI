@@ -7,7 +7,6 @@ schema = """
 import glob
 import concurrent.futures
 from docx import Document
-import easyocr
 import csv
 import fitz  
 import re
