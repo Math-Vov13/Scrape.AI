@@ -8,11 +8,7 @@ import src.models.user_db as user_db
 router = APIRouter()
 
 @router.get("/")
-async def get_users(current_user: Annotated[UserBase, Depends(get_current_user)]):
-    if not current_user.admin:
-        return JSONResponse(status_code= status.HTTP_403_FORBIDDEN, content={
-            "message": "You do not have permission to view users!",
-        })
+async def get_users():
     
     users = await user_db.getAllUsers()
     if not users:
@@ -20,7 +16,7 @@ async def get_users(current_user: Annotated[UserBase, Depends(get_current_user)]
             "message": "No users found!",
         })
     
-    return JSONResponse(status_code= status.HTTP_200_OK, content={
+    return JSONResponse(status_code= status.HTTP_200_OK, headers={"Cache-Control": "no-store"}, content={
         "message": "Users retrieved successfully!",
         "users": [ i.model_dump(mode="json") for i in users ]
     })

@@ -6,9 +6,6 @@ import fitz
 import re
 from rapidfuzz import fuzz
 import statistics
-from docx import Document
-import csv
-import fitz  
 
 
 
@@ -190,7 +187,7 @@ def analyse_file(args):
 
 
 def analyse_files(mot, files,similar_words, max_workers: int = 8):
-    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         
         list_exec=files_ordered(files,similar_words)
         args_list = [(mot, file) for file in list_exec]
@@ -212,10 +209,10 @@ def tool(searching_word,similar_words):
     files=find_files()
     for i in analyse_files(searching_word,files,similar_words):
         print(i)
-        if i[0]>1:
+        if i is not None and i[0]>1:
             result.append(i[-1])
             positive_file_count+=1
-        if positive_file_count==1 and i[0]>1:
-            return read_file(result)
+        if positive_file_count==1 and i is not None and i[0]>1:
+            return read_file(result[0])
     return "No file"
 
