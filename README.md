@@ -1,115 +1,77 @@
 # Scrape.AI
 
-## Architecture Générale
-Sources de données → Ingestion → Chat → Réponse
+<h3>"🔥  Unlock the Power of your Enterprise Data "</h3>
 
-## Sources de données
-### Sources API (temps réel)
-Google Calendar : récupération des événements, réunions, disponibilités.
+Unlock the Power of Your Enterprise Data 
 
-Notion : accès aux bases de données, pages, notes et tâches.
+SCRAPE.AI transforms scattered company files into a single, intelligent AI assistant. 
 
-Slack : messages, fichiers, canaux et utilisateurs.
+Search less, know more — ask any question and get instant, accurate answers powered by your internal knowledge. 
 
-Mail (SMTP) : analyse des emails, pièces jointes.
-
-### Sources Locales (temps réel ou chargement manuel)
-.pdf : extraction de texte via OCR.
-
-.docx / .doc : lecture du texte.
-
-.txt : lecture du texte.
-
-.xlsx : lecture des feuilles, cellules et formules.
-
-## Ingestion
-Récupération des données
-Regroupe les sources sélectionnées (API et fichiers).
-
-Extrait & Conserve les informations utiles.
-
-## CHAT
-
-1. Création du prompt
-Construire un prompt à partir des données.
-
-Optimisation contextuelle : résumé, source du fichier.
-
-2. Envoi à un LLM
-Envoi du prompt vers un modèle LLM pour l'exécuter en local.
-
-Support du multilingue.
-Garde le contexte de la conversation
-
-## Réponse 
-
-Affichage de la réponse
-Affichage dans l'interface de la réponse
+No more digging through folders. Just insight, on demand. 
 
 
+**Documentation:**
+- Front [doc](./front/README.md)
+- API [doc](./server/README.md)
+- MCP [doc](./mcp-server/README.md)
 
-## Front-End
+## 🔨 Stack
+Frontend
+- NextJS
+- Tailwind
+- React
 
-## BDD
-MongoDB
+Backend
+- API Rest - FastAPI
+- MCP Server - RCP - FastAPI
+- OpenAI API
+- MongoDB
 
-### Collections principales :
-users : informations utilisateurs (authentification, préférences, droits).
+## ➕ Features
+- 🥽 Showcase WebSite
+- 🤖 Custom ChatBot linked with entreprise files
+- 🪛 Multiple Tools used by ChatBot to interact with files
+- ⚙️ Admin Panel
+- ⚫ DataBase
 
-files : métadonnées des fichiers ajoutés (nom, type, chemin, date d'ajout).
+## ⚡ Quick Start
 
-messages : historique des conversations (prompts, réponses).
+For each repertory, create .env from .env.example:
+```sh
+copy ./front/.env.example ./front/.env # Add API URL
 
-logs : journal des interactions, synchronisations, erreurs API.
+copy ./server/.env.example ./server/.env # Add OpenAI api key
+```
 
-### Fonctionnalités :
+Start Docker (backend):
+```sh
+docker-compose up --build
+```
 
-Sauvegardes régulières.
+Start SSR (frontend):
+```sh
+cd ./front # front dir
 
-Requêtes flexibles pour audit, export ou visualisation.
+npm install # install packages
+npm run dev # run server
+```
 
-Export en JSON
+Stop Docker Container:
+```sh
+docker-compose down --V
+```
 
-## API
-### Fonctions
-#### Chat
-Le chat interroge l’API → l’API consulte la BDD → envoie les données au LLM → retourne la réponse.
-#### Admin
-L’admin utilise l’API pour :
+Stop SSR:
+```Ctrl + c```
 
-Ajouter/supprimer des fichiers.
+</br>
 
-Consulter l’historique complet.
+## 👤 Authors
+- Clément
+- Mathéo
+- Bastien
+- Salah
 
-Exporter des conversations.
-
-Accéder aux logs et synchronisations.
-
-### Comportement
-L’API interroge régulièrement les services cloud tiers pour synchroniser les données récentes.
-
-L’accès à l’API est restreint au chat et à l’admin uniquement.
-
-## Partie Admin
-Ajouter un fichier
-
-Historique des conversations
-
-Journal complet des interactions par utilisateur.
-
-Export possible des prompts.
-
-Logs d’accès et de synchronisation
-Suivi des connexions, erreurs API.
-
-## Lancement
-Prérequis :
-
-Python
-
-Accès aux APIs 
-
-LLM ?? (choisir entre LLaMa, Mistral AI ou autre)
-
-# Diagramme
-![Scrape](https://github.com/user-attachments/assets/b73140d2-ece6-46b8-a5fe-e8d65740bb54)
+## 📜 License
+- MIT

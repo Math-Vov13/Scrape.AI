@@ -21,8 +21,6 @@ services:
       - "8081:80"
     environment:
       - NODE_ENV=production
-    env_file:
-      - ./mcp-server/.env
     volumes:
       - ./me:/code/me
     networks:
