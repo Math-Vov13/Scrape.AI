@@ -630,21 +630,21 @@ export default function AdminPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredUsers.map((user) => (
-                          <tr key={user.id} className="border-b">
-                            <td className="p-4 font-medium">{user.username}</td>
-                            <td className="p-4 text-muted-foreground">{user.email}</td>
+                        {filteredUsers.map((act_user) => (
+                          <tr key={act_user.id} className="border-b">
+                            <td className="p-4 font-medium">{act_user.username}</td>
+                            <td className="p-4 text-muted-foreground">{act_user.email}</td>
                             <td className="p-4">
-                              <span className={`px-2 py-1 rounded-full text-xs ${user.admin ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                              <span className={`px-2 py-1 rounded-full text-xs ${act_user.admin ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
                                 }`}>
-                                {user.admin ? 'Admin' : 'User'}
+                                {act_user.admin ? 'Admin' : 'User'}
                               </span>
                             </td>
-                            <td className="p-4 text-muted-foreground">{user.created_at}</td>
+                            <td className="p-4 text-muted-foreground">{act_user.created_at}</td>
                             <td className="p-4">
-                              <span className={`px-2 py-1 rounded-full text-xs ${user.disabled === false ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                              <span className={`px-2 py-1 rounded-full text-xs ${act_user.disabled === false ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                                 }`}>
-                                {user.disabled === false ? 'Active' : 'Inactive'}
+                                {act_user.disabled === false ? 'Active' : 'Inactive'}
                               </span>
                             </td>
                             <td className="p-4">
@@ -652,12 +652,12 @@ export default function AdminPage() {
                                 <Button variant="ghost" size="sm">
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                {user.admin === false && (
+                                {act_user.email !== user?.email &&  (
                                   <Button variant="ghost" size="sm" onClick={async () => {
-                                    console.log('Delete user:', user);
-                                    setUsers(prev => prev.filter(u => u.id !== user.id));
+                                    console.log('Delete user:', act_user);
+                                    setUsers(prev => prev.filter(u => u.id !== act_user.id));
 
-                                    const resp = await DeleteUser(user.id);
+                                    const resp = await DeleteUser(act_user.id);
                                     if (!resp.success) {
                                       setErrorMess(resp.error || 'User deletion failed');
                                     }

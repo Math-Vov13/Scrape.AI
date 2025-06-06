@@ -133,7 +133,9 @@ const PricingPage: React.FC = () => {
               Choose Your <span className="text-orange-500">ScrapeAI Plan</span>
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
-              Optimize your company's resource sharing with our interactive chatbot. Flexible solutions that adapt to your needs.
+              Gather all your company files into an intelligent AI assistant.
+              <br />
+              Ask a question, get precise answers instantly.
             </p>
           </div>
         </section>
@@ -174,11 +176,10 @@ const PricingPage: React.FC = () => {
               {pricingPlans.map((plan, index) => (
                 <div
                   key={index}
-                  className={`relative rounded-2xl p-8 ${
-                    plan.highlighted
+                  className={`relative rounded-2xl p-8 ${plan.highlighted
                       ? 'bg-gradient-to-b from-orange-50 to-white border-2 border-orange-500 shadow-2xl scale-105'
                       : 'bg-gray-800 border border-gray-700 shadow-lg hover:shadow-xl'
-                  } transition-all duration-300`}
+                    } transition-all duration-300`}
                 >
                   {plan.highlighted && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -209,9 +210,8 @@ const PricingPage: React.FC = () => {
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-center space-x-3">
                         <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                            feature.included ? 'bg-green-100 text-green-600' : 'bg-gray-700 text-gray-500'
-                          }`}
+                          className={`w-5 h-5 rounded-full flex items-center justify-center ${feature.included ? 'bg-green-100 text-green-600' : 'bg-gray-700 text-gray-500'
+                            }`}
                         >
                           {feature.included ? '✓' : '×'}
                         </div>
@@ -223,11 +223,10 @@ const PricingPage: React.FC = () => {
                   </ul>
 
                   <button
-                    className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
-                      plan.highlighted
+                    className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${plan.highlighted
                         ? 'bg-orange-500 hover:bg-orange-600 text-white'
                         : 'bg-gray-900 hover:bg-black text-white'
-                    }`}
+                      }`}
                   >
                     {plan.ctaText}
                   </button>
@@ -237,84 +236,11 @@ const PricingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Revenue Distribution Chart */}
-        <section className="py-16 bg-black">
-          <div className="container mx-auto px-6">
-            <h2 className="text-3xl font-bold text-center text-white mb-12">
-              Revenue <span className="text-orange-500">Distribution</span>
-            </h2>
-            <div className="max-w-4xl mx-auto bg-gray-800 rounded-xl p-8 shadow-lg">
-              <div className="flex flex-col md:flex-row items-center justify-between">
-                <div className="md:w-1/2 mb-8 md:mb-0">
-                  <div className="relative w-64 h-64 mx-auto">
-                    <svg viewBox="0 0 200 200" className="w-full h-full transform -rotate-90">
-                      {/* SaaS Subscriptions - 60% */}
-                      <circle
-                        cx="100"
-                        cy="100"
-                        r="80"
-                        fill="none"
-                        stroke="#f97316"
-                        strokeWidth="40"
-                        strokeDasharray="301.59 502.65"
-                        className="opacity-80"
-                      />
-                      {/* Integration Services - 25% */}
-                      <circle
-                        cx="100"
-                        cy="100"
-                        r="80"
-                        fill="none"
-                        stroke="#ea580c"
-                        strokeWidth="40"
-                        strokeDasharray="125.66 502.65"
-                        strokeDashoffset="-301.59"
-                        className="opacity-80"
-                      />
-                      {/* Professional Services - 15% */}
-                      <circle
-                        cx="100"
-                        cy="100"
-                        r="80"
-                        fill="none"
-                        stroke="#9a3412"
-                        strokeWidth="40"
-                        strokeDasharray="75.4 502.65"
-                        strokeDashoffset="-427.25"
-                        className="opacity-80"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <div className="md:w-1/2 md:pl-8">
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-orange-500 rounded"></div>
-                      <span className="text-gray-300">SaaS Subscriptions (60%)</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-orange-600 rounded"></div>
-                      <span className="text-gray-300">Integration Services (25%)</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-orange-800 rounded"></div>
-                      <span className="text-gray-300">Professional Services (15%)</span>
-                    </div>
-                  </div>
-                  <p className="text-gray-400 mt-6">
-                    Our diversified business model ensures stable growth with recurring revenue complemented by value-added services.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* CTA Section */}
         <section className="py-16 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-3xl font-bold mb-4">
-              Ready to optimize your resource sharing?
+              Ready to go to the next level?
             </h2>
             <p className="text-xl mb-8 opacity-90">
               Join the companies that trust ScrapeAI to improve their efficiency.

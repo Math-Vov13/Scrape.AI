@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, FileText, Zap, Shield, Users, ArrowRight, CheckCircle, Star, Brain, Database } from 'lucide-react';
+import { Search, FileText, Zap, Shield, Users, ArrowRight, CheckCircle, Star, Brain, Database, CloudLightning, ZapIcon } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ScrapeAILanding() {
@@ -22,14 +22,14 @@ export default function ScrapeAILanding() {
             description: "Instantly find information across all your company documents"
         },
         {
-            icon: <Brain className="w-8 h-8" />,
-            title: "Contextual AI",
-            description: "Precise answers based on your enterprise context and data"
+            icon: <ZapIcon className="w-8 h-8" />,
+            title: "Fast Answers",
+            description: "Allows you to ask questions and get precise answers in seconds"
         },
         {
             icon: <Shield className="w-8 h-8" />,
-            title: "Maximum Security",
-            description: "Your data remains private and secure within your infrastructure"
+            title: "Data Sovereignty",
+            description: "Your files remains private and secure within your infrastructure"
         }
     ];
 
@@ -86,7 +86,7 @@ export default function ScrapeAILanding() {
                         </span>
                     </h1>
                     <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
-                        Scrape.AI transforms your company files into an intelligent AI assistant.
+                        Gather all your company files into an intelligent AI assistant.
                         <br />
                         Ask a question, get precise answers instantly.
                     </p>

@@ -108,5 +108,33 @@
         "usage_count": 856,
         "last_used": "2025-06-03 09:15",
         "status": "active"
+    },
+    "getBestMatchingFileByKeyword": {
+        "id": 4,
+        "name": "getBestMatchingFileByKeyword",
+        "description": "Retrieve the best matching file by searching through a company's files with a keyword",
+        "category": "Document Processing",
+        "parameters": [
+            {
+                "name": "searching_word",
+                "type": "string",
+                "description": "The word the user is trying to find in the files",
+                "required": true
+            },
+            {
+                "name": "similar_words",
+                "type": "array",
+                "description": "Give 5 words that are similar to the searched word and can be used instead of it",
+                "required": true
+            }
+        ],
+        "examples": [
+            "Trouver le meilleur fichier correspondant à un mot-clé dans les documents d'une entreprise",
+            "Rechercher un document spécifique en utilisant des mots-clés",
+            "Identifier le fichier le plus pertinent pour une requête donnée"
+        ],
+        "usage_count": 164,
+        "last_used": "2025-06-03 09:15",
+        "status": "active"
     }
 }
