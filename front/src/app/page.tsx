@@ -3,6 +3,125 @@ import React, { useState, useEffect } from 'react';
 import { Search, FileText, Zap, Shield, Users, ArrowRight, CheckCircle, Star, Brain, Database, CloudLightning, ZapIcon } from 'lucide-react';
 import Link from 'next/link';
 
+// Demo Section Component
+function DemoSection() {
+    const [userText, setUserText] = useState('');
+    const [showAIResponse, setShowAIResponse] = useState(false);
+    const [aiText, setAIText] = useState('');
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [showCursor, setShowCursor] = useState(true);
+    const [showThinkingDots, setShowThinkingDots] = useState(false);
+    const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+
+    const userMessage = "What's our remote work policy for 2025?";
+    const aiMessage = "According to HR-Policy-2025.pdf, your remote work policy allows up to 3 days per week from home...";
+
+    // Reset and start animation
+    const startDemo = () => {
+        setUserText('');
+        setShowAIResponse(false);
+        setAIText('');
+        setCurrentIndex(0);
+        setShowCursor(true);
+        setShowThinkingDots(false);
+        setIsAnimationComplete(false);
+    };
+
+    useEffect(() => {
+        // Start demo automatically, but only repeat if animation is not complete
+        if (!isAnimationComplete) {
+            startDemo();
+            const interval = setInterval(() => {
+                if (!isAnimationComplete) {
+                    startDemo();
+                }
+            }, 15000); // Augmenté à 15 secondes pour laisser le temps de voir le résultat final
+            return () => clearInterval(interval);
+        }
+    }, [isAnimationComplete]);
+
+    useEffect(() => {
+        if (currentIndex < userMessage.length) {
+            const timer = setTimeout(() => {
+                setUserText(userMessage.slice(0, currentIndex + 1));
+                setCurrentIndex(currentIndex + 1);
+            }, 80);
+            return () => clearTimeout(timer);
+        } else if (currentIndex === userMessage.length && !showAIResponse && !showThinkingDots) {
+            // Show thinking dots first
+            setShowCursor(false);
+            setShowThinkingDots(true);
+            // Then show AI response after 0.5 second delay
+            setTimeout(() => {
+                setShowThinkingDots(false);
+                setShowAIResponse(true);
+            }, 500);
+        }
+    }, [currentIndex, userMessage, showAIResponse, showThinkingDots]);
+
+    useEffect(() => {
+        if (showAIResponse && aiText.length < aiMessage.length) {
+            const timer = setTimeout(() => {
+                setAIText(aiMessage.slice(0, aiText.length + 1));
+            }, 5); // Très rapide: 5ms par caractère
+            return () => clearTimeout(timer);
+        } else if (showAIResponse && aiText.length === aiMessage.length) {
+            // Animation terminée
+            setIsAnimationComplete(true);
+        }
+    }, [showAIResponse, aiText, aiMessage]);
+
+    return (
+        <div className="bg-black/60 backdrop-blur-lg rounded-2xl p-6 max-w-2xl mx-auto border border-orange-500/30 shadow-2xl min-h-[200px]">
+            <div className="flex items-center space-x-3 mb-4">
+                <div className="flex space-x-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                </div>
+                <span className="text-gray-400 text-sm">Scrape.AI Assistant</span>
+            </div>
+            <div className="text-left space-y-4">
+                <div className="bg-orange-500/20 p-3 rounded-lg border border-orange-500/30 min-h-[60px] flex flex-col justify-center">
+                    <p className="text-orange-300 text-sm mb-1">Employee:</p>
+                    <p className="text-white">
+                        "{userText}
+                        {currentIndex < userMessage.length && showCursor && (
+                            <span className="animate-pulse">|</span>
+                        )}"
+                    </p>
+                </div>
+                <div className={`bg-amber-500/20 p-3 rounded-lg border transition-all duration-700 ${
+                    !showThinkingDots && !showAIResponse ? 'opacity-30 border-amber-500/20' :
+                    showThinkingDots ? 'opacity-70 border-amber-500/40' :
+                    showAIResponse && aiText.length === aiMessage.length ? 'opacity-100 border-amber-400/60 bg-amber-500/30' :
+                    'opacity-100 border-amber-500/30'
+                }`}>
+                    <p className="text-amber-300 text-sm mb-1">Assistant:</p>
+                    <div className="flex items-start min-h-[48px]">
+                        {showThinkingDots ? (
+                            <div className="flex items-center space-x-1 mt-2">
+                                <div className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                <div className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                <div className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                            </div>
+                        ) : showAIResponse ? (
+                            <p className="text-white leading-relaxed">
+                                {aiText}
+                                {aiText.length < aiMessage.length && (
+                                    <span className="animate-pulse">|</span>
+                                )}
+                            </p>
+                        ) : (
+                            <div className="text-gray-600 italic">Waiting for response...</div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function ScrapeAILanding() {
     const [isVisible, setIsVisible] = useState(false);
     const [currentFeature, setCurrentFeature] = useState(0);
@@ -107,33 +226,14 @@ export default function ScrapeAILanding() {
                     </div>
 
                     {/* Demo Preview */}
-                    <div className="bg-black/60 backdrop-blur-lg rounded-2xl p-6 max-w-2xl mx-auto border border-orange-500/30 shadow-2xl">
-                        <div className="flex items-center space-x-3 mb-4">
-                            <div className="flex space-x-2">
-                                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                            </div>
-                            <span className="text-gray-400 text-sm">Scrape.AI Assistant</span>
-                        </div>
-                        <div className="text-left space-y-4">
-                            <div className="bg-orange-500/20 p-3 rounded-lg border border-orange-500/30">
-                                <p className="text-orange-300 text-sm">Employee:</p>
-                                <p className="text-white">"What's our remote work policy for 2025?"</p>
-                            </div>
-                            <div className="bg-amber-500/20 p-3 rounded-lg border border-amber-500/30">
-                                <p className="text-amber-300 text-sm">Assistant:</p>
-                                <p className="text-white">According to HR-Policy-2025.pdf, your remote work policy allows up to 3 days per week from home...</p>
-                            </div>
-                        </div>
-                    </div>
+                    <DemoSection />
                 </div>
             </div>
 
             {/* Features Section */}
             <div className="relative z-10 px-6 py-20">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-4xl font-bold text-center mb-16 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                    <h2 className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                         Powerful Features
                     </h2>
 
