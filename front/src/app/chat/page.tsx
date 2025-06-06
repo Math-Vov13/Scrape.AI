@@ -2,18 +2,17 @@
 
 import ReactMarkdown from 'react-markdown';
 import { useState, useRef, useEffect } from "react";
-import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown, RefreshCw, Copy, Plus, Send, Star, Settings } from "lucide-react";
+import { Plus, Wrench, Send, Star, Settings, Clock, ChevronDown, ChevronUp, Bot, User } from "lucide-react";
 import { useAuth } from '../../context/AuthContext';
 import ProtectedRoute from '../../components/ProtectedRoute';
-
 
 type ToolCalled = {
   id: string;             // Unique identifier for the tool call
   name: string;           // Name of the tool called
   description: string;    // Description of what the tool does
   params: Record<string, any>; // Parameters passed to the tool
+  timestamp: string;      // Timestamp of when the tool was called, formatted as "HH:MM"
 }
 
 interface Message {
@@ -28,10 +27,11 @@ interface Message {
   toolCalls?: ToolCalled[]; // List of tool calls made in the message, if any
 
   // Writting metadata
-  timeTaken?: number;     // Time taken to generate the message in milliseconds
-  error?: boolean;        // Error message if any
-  isStreaming?: boolean;  // True if the message is currently being streamed
-  isWaiting?: boolean;    // True if the AI is still processing the message
+  timeFirstToken?: number; // First token of the message, if available
+  timeTaken?: number;      // Time taken to generate the message in milliseconds
+  error?: boolean;         // Error message if any
+  isStreaming?: boolean;   // True if the message is currently being streamed
+  isWaiting?: boolean;     // True if the AI is still processing the message
 }
 
 type ChatHistory = {
@@ -42,21 +42,22 @@ type ChatHistory = {
 }
 
 const startConversation = [
-  ", comment puis-je vous aider aujourd'hui ?",
-  ", que puis-je faire pour vous ?",
-  ". Comment puis-je vous assister ?",
-  ", avez-vous une question ou un sujet en tête ?",
-  ", je suis là pour répondre à vos questions.",
-  ", je suis là pour répondre à vos questions. Souhaitez-vous un résumé des dernières actualités dans votre entreprise aujourd'hui ?",
-  ". Voulez-vous que je vous rappelle vos prochaines tâches à accomplir ?",
-  ", quelles sont vos envies ou priorités pour aujourd’hui ? Je peux vous aider à les organiser.",
-  ", avez-vous besoin d’accéder à des informations sur un document spécifique ? Ou juste discuter de vos envies ?",
-  ", je suis prêt à vous assister ! Par où démarrons-nous aujourd'hui ?",
+  ", how can I help you today?",
+  ", what can I do for you?",
+  ". How can I assist you?",
+  ", do you have a question or topic in mind?",
+  ", I'm here to answer your questions.",
+  ", I'm here to answer your questions. Would you like a summary of the latest news in your company today?",
+  ". Would you like me to remind you of your upcoming tasks?",
+  ", what are your goals or priorities for today? I can help you organize them.",
+  ", do you need access to information on a specific document? Or just want to chat about what's on your mind?",
+  ", I'm ready to assist you! Where shall we start today?",
 ]
 
 export default function Home() {
   const { user, logout } = useAuth();
 
+  const [toolsData, setToolsData] = useState<{ [key: string]: { name: string, description: string } }>({});
   const [messages, setMessages] = useState<Message[]>([]);
   const [expandedTools, setExpandedTools] = useState<{ [msgId: string]: number | null }>({});
   const [inputValue, setInputValue] = useState("");
@@ -72,12 +73,22 @@ export default function Home() {
     setMessages([
       {
         id: "1",
-        content: `Bonjour **${user?.full_name}**` + startConversation[Math.floor(Math.random() * startConversation.length)],
+        content: `Good day **${user?.full_name}**` + startConversation[Math.floor(Math.random() * startConversation.length)],
         isUser: false,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
   }, [user]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch('/tools_desc.json');
+      const jsonData = await response.json();
+      setToolsData(jsonData);
+    };
+
+    fetchData();
+  }, []);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -169,13 +180,13 @@ export default function Home() {
     setIsWaitingResponse(true);
     // Create placeholder AI message for streaming
     const new_MessageId = (Date.now() + 1).toString();
-    const act_time = new Date();
+
 
     setMessages(prev => [...prev, {
       id: new_MessageId,
       content: "",
       isUser: false,
-      timestamp: act_time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isStreaming: false, // Initially not streaming
       error: false, // No error initially
       isWaiting: true, // Flag to show waiting indicator
@@ -183,10 +194,13 @@ export default function Home() {
 
     // Call ChatBot streaming API
     (async () => {
+      const act_time = new Date(); // Record the time when the API call starts
       const api_response = await sendPrompt(prompt, new_MessageId);
+      let messageContent = "";
+
       if (!api_response || typeof api_response !== 'object') {
         setMessages(prev => prev.map(msg => msg.id === new_MessageId
-          ? { ...msg, timeTaken: 0, error: true, isWaiting: false, isStreaming: false, content: api_response || 'Erreur de réponse.' }
+          ? { ...msg, timeTaken: 0, error: true, isWaiting: false, isStreaming: false, content: api_response || 'Error: We\'re Sorry, an unexpected error happend in background!' }
           : msg
         ));
         setIsWaitingResponse(false);
@@ -211,40 +225,53 @@ export default function Home() {
               if (text.startsWith('<||TOOL||>')) {
                 const toolData = text.slice(10).replace(/<\|\|END_TOOL\|\|>$/, '').trim();
                 const toolCall: ToolCalled = JSON.parse(toolData);
-                
+                toolCall.description = toolsData[toolCall.name]?.description || "No description provided";
+
                 setMessages(prev => prev.map(msg =>
                   msg.id === new_MessageId
                     ? {
                       ...msg,
-                      toolCalls: msg.toolCalls ? [...msg.toolCalls, toolCall] : [toolCall],
-                      isWaiting: false // Remove waiting indicator once streaming starts
+                      toolCalls: msg.toolCalls ? [...msg.toolCalls, toolCall] : [toolCall]
                     }
                     : msg
                 ));
                 continue; // Skip appending text to content
               }
+
               setMessages(prev => prev.map(msg =>
                 msg.id === new_MessageId
                   ? {
                     ...msg,
+                    timeFirstToken: msg.timeFirstToken !== undefined ? msg.timeFirstToken : new Date().getTime() - act_time.getTime(),
                     content: msg.content + text,
                     isWaiting: false // Remove waiting indicator once streaming starts
                   }
                   : msg
               ));
+              messageContent += text; // Append to the full message content
             }
           }
+        }
+
+        if (messageContent === undefined || messageContent.trim() === "") {
+          // If no content was received, set an error message
+          setMessages(prev => prev.map(msg =>
+            msg.id === new_MessageId
+              ? { ...msg, timeTaken: 0, error: true, isWaiting: false, isStreaming: false, content: 'Error: We\'re sorry, AI did not give an answer...' }
+              : msg
+          ));
+          return;
         }
 
         // Mark streaming as complete
         setMessages(prev => prev.map(msg =>
           msg.id === new_MessageId
-            ? { ...msg, timeTaken: new Date().getMilliseconds() - act_time.getMilliseconds(), isStreaming: false }
+            ? { ...msg, timeTaken: new Date().getTime() - act_time.getTime(), isWaiting: false, isStreaming: false }
             : msg
         ));
       } catch (err) {
         console.error(err);
-        setMessages(prev => prev.map(msg => msg.id === new_MessageId ? { ...msg, timeTaken: new Date().getMilliseconds() - act_time.getMilliseconds(), error: true, isWaiting: false, isStreaming: false, content: 'Erreur de réponse.' } : msg));
+        setMessages(prev => prev.map(msg => msg.id === new_MessageId ? { ...msg, timeTaken: new Date().getTime() - act_time.getTime(), error: true, isWaiting: false, isStreaming: false, content: 'Error: We\'re Sorry, an unexpected error happend in background!' } : msg));
       } finally {
         setIsWaitingResponse(false);
       }
@@ -266,110 +293,178 @@ export default function Home() {
           </div>
 
           <div className="ml-auto flex items-center space-x-2">
+            Connected as <span className="font-semibold text-orange-500 ml-1">"{user?.full_name}"</span>{"   "}
             <Button
               variant="outline"
               size="sm"
               asChild
             >
               <a href="/login">
-                Connexion
+                Logout
               </a>
             </Button>
-            <button
-              className="p-2 hover:bg-secondary rounded-full"
-              onClick={() => window.location.href = '/admin'}
-            >
-              <Settings className="h-5 w-5" />
-            </button>
+            {user?.admin && (
+              <>
+                <Settings className="h-5 w-5" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                >
+                  <a href="/admin">
+                    Go to Admin Panel
+                  </a>
+                </Button>
+              </>
+            )}
           </div>
         </header>
 
-        {/* Chat container */}
         <div
           ref={chatContainerRef}
-          className="flex-1 overflow-auto p-4 space-y-6"
+          className="flex-1 overflow-y-auto px-4 py-6 space-y-6 scrollbar-thin scrollbar-thumb-orange-500/50"
         >
           {messages.map((message) => {
             const expandedTool = expandedTools[message.id] ?? null;
-            return (
-              <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`
-          ${message.isUser ? 'chat-message-user' : 'chat-message-ai'}
-          ${message.error ? 'bg-red-400 border border-red-400 text-red-700' : ''}
-        `}
-                  style={message.error ? { borderRadius: '0.75rem', padding: '0.75rem 1rem' } : {}}
-                >
-                  {/* Tool calls déroulants */}
-                  {!message.isUser && message.toolCalls && message.toolCalls.length > 0 && (
-                    <div className="mb-2 flex flex-col gap-1">
-                      {message.toolCalls.map((tool, idx) => {
-                        const isExpanded = expandedTool === idx;
-                        const truncatedName = tool.name.length > 18 ? tool.name.slice(0, 18) + "…" : tool.name;
-                        return (
-                          <div
-                            key={tool.id || idx}
-                            className="bg-muted border border-muted-foreground/10 rounded px-2 py-1 cursor-pointer transition hover:bg-muted/80"
-                            onClick={() =>
-                              setExpandedTools((prev) => ({
-                                ...prev,
-                                [message.id]: isExpanded ? null : idx,
-                              }))
-                            }
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold text-xs">
-                                {isExpanded ? tool.name : truncatedName}
-                              </span>
-                              <span className="ml-2 text-xs text-muted-foreground">
-                                {isExpanded ? "▲" : "▼"}
-                              </span>
-                            </div>
-                            {isExpanded && (
-                              <div className="mt-1 text-xs text-muted-foreground">
-                                <div><span className="font-semibold">Nom complet :</span> {tool.name}</div>
-                                {tool.description && (
-                                  <div><span className="font-semibold">Description :</span> {tool.description}</div>
-                                )}
-                                <div>
-                                  <span className="font-semibold">Paramètres :</span>
-                                  <pre className="bg-background/60 rounded p-1 mt-1 overflow-x-auto">{JSON.stringify(tool.params, null, 2)}</pre>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
 
-                  {/* Message principal */}
-                  <div className="flex flex-col">
-                    <div
-                      className={`
-              text-sm
-              ${!message.isUser && message.isStreaming ? 'streaming-cursor' : ''}
-              ${message.error ? 'font-semibold' : ''}
-            `}
-                    >
-                      {!message.isUser && message.isWaiting ? (
-                        <div className="flex items-center space-x-1">
-                          <div className="h-2 w-2 bg-foreground/70 rounded-full animate-pulse"></div>
-                          <div className="h-2 w-2 bg-foreground/70 rounded-full animate-pulse delay-150"></div>
-                          <div className="h-2 w-2 bg-foreground/70 rounded-full animate-pulse delay-300"></div>
-                        </div>
-                      ) : (
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
-                      )}
-                    </div>
+            return (
+              <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} group`}>
+                <div className={`flex max-w-[85%] ${message.isUser ? 'flex-row-reverse' : 'flex-row'} gap-3 items-start`}>
+                  {/* Avatar */}
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg ${message.isUser
+                    ? 'bg-gradient-to-r from-orange-600 to-orange-700 shadow-orange-500/30'
+                    : 'bg-gradient-to-r from-orange-500 to-orange-600 shadow-orange-500/40'
+                    }`}>
+                    {message.isUser ? (
+                      <User className="w-5 h-5 text-black" />
+                    ) : (
+                      <Bot className="w-5 h-5 text-black" />
+                    )}
                   </div>
 
-                  {/* Timestamp & timeTaken en bas */}
-                  <div className="flex items-center justify-end gap-2 mt-2 px-1 py-0.5 rounded bg-background/60 text-xs text-muted-foreground" style={{ background: "rgba(0,0,0,0.04)" }}>
-                    <span>{message.timestamp}</span>
-                    {!message.isUser && typeof message.timeTaken === 'number' && !message.isStreaming && (
-                      <span>⏱️ {message.timeTaken} ms</span>
+                  {/* Message bubble */}
+                  <div className="flex flex-col gap-2 flex-1 min-w-0">
+                    {/* Tool calls section */}
+                    {!message.isUser && message.toolCalls && message.toolCalls.length > 0 && (
+                      <div className="space-y-2">
+                        {message.toolCalls.map((tool, idx) => {
+                          const isExpanded = expandedTool === idx;
+                          const truncatedName = tool.name.length > 20 ? tool.name.slice(0, 20) + "…" : tool.name;
+
+                          return (
+                            <div
+                              key={tool.id || idx}
+                              className="bg-gray-900/70 backdrop-blur-sm border border-orange-500/30 rounded-lg overflow-hidden shadow-sm hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-200 cursor-pointer"
+                              onClick={() =>
+                                setExpandedTools((prev) => ({
+                                  ...prev,
+                                  [message.id]: isExpanded ? null : idx,
+                                }))
+                              }
+                            >
+                              <div className="flex items-center justify-between p-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                                  <span className="font-medium text-sm text-orange-300">
+                                    {isExpanded ? tool.name : truncatedName}
+                                  </span>
+                                </div>
+                                {isExpanded ? (
+                                  <ChevronUp className="w-4 h-4 text-orange-400" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4 text-orange-400" />
+                                )}
+                              </div>
+
+                              {isExpanded && (
+                                <div className="px-3 pb-3 border-t border-orange-500/30 bg-black/40">
+                                  <div className="pt-2 space-y-2 text-xs">
+                                    {tool.description && (
+                                      <div>
+                                        <span className="font-semibold text-orange-400">Description :</span>
+                                        <p className="text-gray-300 mt-1">{tool.description}</p>
+                                      </div>
+                                    )}
+                                    <div>
+                                      <span className="font-semibold text-orange-400">Parameters :</span>
+                                      <pre className="bg-black/60 rounded p-2 mt-1 overflow-x-auto text-gray-300 border border-orange-500/20">
+                                        {JSON.stringify(tool.params, null, 2)}
+                                      </pre>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
+
+                    {/* Main message bubble */}
+                    <div
+                      className={`
+                      relative px-4 py-3 rounded-2xl shadow-lg
+                      ${message.isUser
+                          ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-black ml-auto shadow-orange-500/30'
+                          : 'bg-gray-900/80 text-orange-100 border border-orange-500/20 shadow-black/50'
+                        }
+                      ${message.error ? 'bg-red-900/50 border-red-500/50 text-red-300' : ''}
+                    `}
+                    >
+                      {/* Message content */}
+                      <div className={`
+                      ${message.isUser ? 'text-black font-medium' : 'text-orange-100'}
+                      ${!message.isUser && message.isStreaming ? 'typing-animation' : ''}
+                      ${message.error ? 'font-medium' : ''}
+                    `}>
+                        {!message.isUser && message.isWaiting ? (
+                          <div className="flex items-center space-x-1 py-2">
+                            <div className="h-2 w-2 bg-orange-400 rounded-full animate-bounce"></div>
+                            <div className="h-2 w-2 bg-orange-400 rounded-full animate-bounce delay-100"></div>
+                            <div className="h-2 w-2 bg-orange-500 rounded-full animate-bounce delay-200"></div>
+                          </div>
+                        ) : (
+                          <ReactMarkdown>{message.content}</ReactMarkdown>
+                        )}
+                      </div>
+
+                      {/* Message tail */}
+                      <div className={`
+                      absolute top-3 w-3 h-3
+                      ${message.isUser
+                          ? '-right-1 bg-gradient-to-r from-orange-600 to-orange-700 transform rotate-45'
+                          : '-left-1 bg-gray-900/80 border-l border-b border-orange-500/20 transform rotate-45'
+                        }
+                    `}></div>
+                    </div>
+
+                    {/* Timestamp and metadata */}
+                    <div className={`
+                    flex items-center gap-2 text-xs text-gray-400 px-1
+                    ${message.isUser ? 'justify-end' : 'justify-start'}
+                  `}>
+                      <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full border border-orange-500/20">
+                        {message.timestamp}
+                      </span>
+                      {message.toolCalls?.map((tool) => (
+                        <span key={tool.timestamp} className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 border border-orange-500/20">
+                          <Wrench className="w-3 h-3 text-orange-400" />
+                          <span className="text-orange-100">{tool.id}</span>
+                        </span>
+                      ))}
+                      {!message.isUser && typeof message.timeFirstToken === 'number' && (
+                        <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 border border-orange-500/20">
+                          <Clock className="w-3 h-3 text-orange-400" />
+                          <span className="text-orange-100">{(message.timeFirstToken / 1000).toFixed(3)}s</span>
+                        </span>
+                      )}
+                      {!message.isUser && typeof message.timeTaken === 'number' && !message.isStreaming && (
+                        <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 border border-orange-500/20">
+                          <Clock className="w-3 h-3 text-orange-400" />
+                          <span className="text-orange-300">{(message.timeTaken / 1000).toFixed(1)}s</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -386,7 +481,7 @@ export default function Home() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && e.shiftKey && (e.preventDefault(), handleSendMessage())}
-              placeholder="Posez une question..."
+              placeholder="Ask a question..."
               className="chat-input resize-none"
               onInput={(e) => {
                 const ta = e.currentTarget;

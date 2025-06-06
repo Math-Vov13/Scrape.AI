@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
-        model: 'mistral-large-latest',
+        model: 'gpt-4.1-nano',
         messages: full_history,
         temperature: 0.2,
         max_tokens: 5000,
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
             if (dataType === 'data' || dataType === 'tool') {
               // Handle regular data messages
               if (dataType === 'tool') {
-                data = '<||TOOL||>' + data + '<||END_TOOL||>';
+                data = '<||TOOL||>' + data.trim() + '<||END_TOOL||>';
               }
               try {
                 await writer.write(encoder.encode(data));
