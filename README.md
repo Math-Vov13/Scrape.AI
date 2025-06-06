@@ -74,4 +74,4 @@ Stop SSR:
 - Salah
 
 ## 📜 License
-- MIT
+- APACHE 2.0
